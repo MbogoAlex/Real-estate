@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
@@ -49,11 +51,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -100,6 +105,9 @@ fun UnitsScreen(
     var selectedIndex by remember {
         mutableStateOf(0)
     }
+    var location by remember {
+        mutableStateOf("")
+    }
     if(uiState.showUnitDetails) {
 
         UnitDetails(
@@ -124,11 +132,11 @@ fun UnitsScreen(
 //                                .padding(
 //                                    top = 13.dp
 //                                )
-                                .size(30.dp)
+                                .size(25.dp)
                         )
                         Text(
                             text = items[selectedIndex].label,
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             modifier = Modifier
                                 .clickable { expanded = true }
 
@@ -151,12 +159,12 @@ fun UnitsScreen(
 //                                .padding(
 //                                    top = 13.dp
 //                                )
-                                .size(30.dp)
+                                .size(25.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Select type",
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             modifier = Modifier
                                 .clickable { expanded = true }
 //                                .padding(
@@ -189,35 +197,52 @@ fun UnitsScreen(
                 }
             }
 
-//            Card(
-//                modifier = Modifier
-//                    .padding(10.dp)
-//                    .clip(CircleShape)
-//                    .fillMaxWidth()
-//            ) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//
-//                ) {
-//                    TextField(
-//                        value = "Search location",
-//                        onValueChange = {},
-//                        modifier = Modifier,
-//                    )
-//                    Icon(
-//                        imageVector = Icons.Default.Search,
-//                        contentDescription = null,
-//                        modifier = Modifier
-//                            .padding(
-//                                end = 20.dp
-//                            )
-//                            .size(30.dp)
-//                    )
-//                }
-//            }
+            Card(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .clip(CircleShape)
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+
+                ) {
+                    BasicTextField(
+                        value = location,
+                        onValueChange = {
+                                        location = it
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            imeAction = ImeAction.Search
+                        ),
+                        decorationBox = { innerTextField ->
+                                        if(location.isEmpty()) {
+                                            Text(
+                                                text = "Search location",
+                                                style = TextStyle(color = Color.Gray),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                            innerTextField()
+
+                        },
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(
+                                end = 20.dp
+                            )
+                            .size(30.dp)
+                    )
+                }
+            }
 
             ScrollableUnitsScreen(
                 showSelectedUnit = showSelectedUnit,
