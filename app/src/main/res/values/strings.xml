@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Property Management</string>
+
+    <string name="nairobi">Nairobi</string>
+    <string name="nakuru">Nakuru</string>
+
+    <string name="spacious_bedsitter">Spacious bedsitter</string>
+    <string name="one_bedroom">One bedroom, Specious, Newly built</string>
+
+    <string name="bedsitter_description">
+        Spacious newly built bedsitter. Bright colors. Quiet environment\n
+        • Wi-Fi\n
+        • Hot shower\n
+        • 24/7 Security
+    </string>
+
+    <string name="one_bedroom_description">
+        Spacious newly built one bedroom house. Bright colors. Quiet environment\n
+        • Wi-Fi\n
+        • Hot shower\n
+        • 24/7 Security\n
+        • Pets not allowed\n
+        • Parking spot available\n
+    </string>
+
+</resources>
