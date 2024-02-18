@@ -23,8 +23,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -35,6 +37,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -65,6 +69,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
+import com.example.propertymanagement.model.NavigationContent
+import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.Unit
 import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.appViewModel.AppViewModel
@@ -80,13 +86,51 @@ fun PropertyScreen(
     val viewModel: AppViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    UnitsScreen(
-        uiState = uiState,
-        onBackButtonPressed = { viewModel.onBackButtonClicked() },
-        showSelectedUnit = { viewModel.showUnitDetails(it) },
-        filterUnits = { viewModel.filterUnits(it) },
+    val navigationContentList = listOf<NavigationContent>(
+        NavigationContent(
+            title = "Units",
+            icon = Icons.Default.Home,
+            currentTab = Tab.UNITS
+        ),
+        NavigationContent(
+            title = "Item 2",
+            icon = Icons.Default.Info,
+            currentTab = Tab.ITEM_TWO,
 
-    )
+            ),
+        NavigationContent(
+            title = "Item 3",
+            icon = Icons.Default.Info,
+            currentTab = Tab.ITEM_THREE
+        ),
+        NavigationContent(
+            title = "Account",
+            icon = Icons.Default.Person,
+            currentTab = Tab.ACCOUNT
+        ),
+
+        )
+
+    Column {
+        UnitsScreen(
+            uiState = uiState,
+            onBackButtonPressed = { viewModel.onBackButtonClicked() },
+            showSelectedUnit = { viewModel.showUnitDetails(it) },
+            onTabClicked = { currentTab ->  },
+            filterUnits = { viewModel.filterUnits(it) },
+            modifier = Modifier
+                .weight(1f)
+
+            )
+
+        BottomNavigationBar(
+            navigationContentList = navigationContentList,
+            currentTab = uiState.currentTab,
+            onTabClicked = { currentTab ->  },
+        )
+    }
+
+
 
 }
 
@@ -95,6 +139,7 @@ fun UnitsScreen(
     uiState: AppUiState,
     onBackButtonPressed: () -> kotlin.Unit,
     showSelectedUnit: (unitId: Int) -> kotlin.Unit,
+    onTabClicked: (currentTab: Tab) -> kotlin.Unit,
     filterUnits: (type: UnitType) -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,6 +153,9 @@ fun UnitsScreen(
     var location by remember {
         mutableStateOf("")
     }
+
+
+
     if(uiState.showUnitDetails) {
 
         UnitDetails(
@@ -116,7 +164,9 @@ fun UnitsScreen(
             onBackButtonPressed = onBackButtonPressed
         )
     } else {
-        Column {
+        Column(
+            modifier = modifier
+        ) {
             Box(
                 modifier = Modifier
                     .padding(10.dp)
@@ -249,10 +299,13 @@ fun UnitsScreen(
                 isRegistered = false,
                 appUiState = uiState,
                 modifier = Modifier
+                    .weight(1f)
+
 //                    .padding(10.dp)
             )
-        }
 
+
+        }
 
     }
 }
@@ -365,6 +418,33 @@ fun UnitItem(
 //            Spacer(modifier = Modifier.height(10.dp))
         }
 
+}
+
+@Composable
+fun BottomNavigationBar(
+    navigationContentList: List<NavigationContent>,
+    currentTab: Tab,
+    onTabClicked: (currentTab: Tab) -> kotlin.Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavigationBar(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(70.dp)
+    ) {
+        for(navItem in navigationContentList) {
+            NavigationBarItem(
+                selected = navItem.currentTab == currentTab,
+                onClick = { onTabClicked(navItem.currentTab) },
+                icon = {
+                    Icon(
+                        imageVector = navItem.icon,
+                        contentDescription = null
+                    )
+                }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

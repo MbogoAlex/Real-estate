@@ -2,6 +2,7 @@ package com.example.propertymanagement.ui.appViewModel
 
 import androidx.lifecycle.ViewModel
 import com.example.propertymanagement.datasource.Datasource
+import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.state.AppUiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ class AppViewModel: ViewModel() {
             unfilteredUnits = allUnits,
             unitType = UnitType.BED_SITTER,
             selectedUnit = allUnits.first { it.id == 1 },
+            currentTab = Tab.UNITS,
             showUnitDetails = false,
             showFilteredUnits = false,
         )
