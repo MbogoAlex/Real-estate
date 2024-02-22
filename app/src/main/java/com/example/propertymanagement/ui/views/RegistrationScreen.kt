@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -69,6 +70,14 @@ fun RegistrationScreen(
                 )
                 Spacer(modifier = Modifier.height(40.dp))
                 OutlinedTextField(
+                    value = "Name",
+                    onValueChange = {},
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                )
+                Spacer(modifier = Modifier.height(30.dp))
+                OutlinedTextField(
                     value = "Email",
                     onValueChange = {},
                     modifier = Modifier
@@ -76,6 +85,7 @@ fun RegistrationScreen(
                         .clip(RoundedCornerShape(10.dp))
                 )
                 Spacer(modifier = Modifier.height(30.dp))
+
                 OutlinedTextField(
                     value = "Phone Number",
                     onValueChange = {},
@@ -94,9 +104,15 @@ fun RegistrationScreen(
                         .widthIn(250.dp)
                         .align(Alignment.CenterHorizontally)
                 ) {
-                    Text(
-                        text = "Send OTP"
-                    )
+                    Row {
+                        Text(
+                            text = "Continue"
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ArrowForward,
+                            contentDescription = "Continue with registration"
+                        )
+                    }
                 }
 
             }

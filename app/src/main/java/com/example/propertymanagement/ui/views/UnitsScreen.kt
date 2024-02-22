@@ -89,44 +89,62 @@ fun PropertyScreen(
     val navigationContentList = listOf<NavigationContent>(
         NavigationContent(
             title = "Units",
-            icon = Icons.Default.Home,
+            icon = painterResource(id = R.drawable.home_tab),
             currentTab = Tab.UNITS
         ),
         NavigationContent(
-            title = "Item 2",
-            icon = Icons.Default.Info,
-            currentTab = Tab.ITEM_TWO,
+            title = "Invoice",
+            icon = painterResource(id = R.drawable.invoice_tab),
+            currentTab = Tab.INVOICE,
 
             ),
         NavigationContent(
-            title = "Item 3",
-            icon = Icons.Default.Info,
-            currentTab = Tab.ITEM_THREE
+            title = "Payments",
+            icon = painterResource(id = R.drawable.payments_tab),
+            currentTab = Tab.PAYMENTS
         ),
         NavigationContent(
             title = "Account",
-            icon = Icons.Default.Person,
+            icon = painterResource(id = R.drawable.account_tab),
             currentTab = Tab.ACCOUNT
         ),
 
         )
 
     Column {
-        UnitsScreen(
-            uiState = uiState,
-            onBackButtonPressed = { viewModel.onBackButtonClicked() },
-            showSelectedUnit = { viewModel.showUnitDetails(it) },
-            onTabClicked = { currentTab ->  },
-            filterUnits = { viewModel.filterUnits(it) },
-            modifier = Modifier
-                .weight(1f)
+        when(uiState.currentTab) {
+            Tab.UNITS -> {
+                UnitsScreen(
+                    uiState = uiState,
+                    onBackButtonPressed = { viewModel.onBackButtonClicked() },
+                    showSelectedUnit = { viewModel.showUnitDetails(it) },
+                    onTabClicked = { currentTab ->  },
+                    filterUnits = { viewModel.filterUnits(it) },
+                    modifier = Modifier
+                        .weight(1f)
 
-            )
+                )
+            }
+            Tab.INVOICE -> {
+                InvoiceScreen(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+            }
+            Tab.PAYMENTS -> {
+                PaymentsScreen(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+            }
+            Tab.ACCOUNT -> {}
+        }
+
 
         BottomNavigationBar(
             navigationContentList = navigationContentList,
             currentTab = uiState.currentTab,
-            onTabClicked = { currentTab ->  },
+            onTabClicked = { currentTab ->  viewModel.switchTab(currentTab)},
         )
     }
 
@@ -225,6 +243,22 @@ fun UnitsScreen(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = null,
                             modifier = Modifier
+
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    items.forEachIndexed { index, item ->
+                        DropdownMenuItem(
+                            text = { Text(text = item.label) },
+                            onClick = {
+                                selectedIndex = index
+                                filterUnits(items[selectedIndex])
+                                expanded = false
+                            }
 
                         )
                     }
@@ -436,9 +470,10 @@ fun BottomNavigationBar(
             NavigationBarItem(
                 selected = navItem.currentTab == currentTab,
                 onClick = { onTabClicked(navItem.currentTab) },
+                label = { Text(text = navItem.title) },
                 icon = {
                     Icon(
-                        imageVector = navItem.icon,
+                        painter = navItem.icon,
                         contentDescription = null
                     )
                 }

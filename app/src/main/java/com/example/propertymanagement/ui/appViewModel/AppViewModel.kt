@@ -56,4 +56,12 @@ class AppViewModel: ViewModel() {
             )
         }
     }
+
+    fun switchTab(tab: Tab) {
+        _uiState.update {
+            it.copy(
+                currentTab = tab
+            )
+        }
+    }
 }
