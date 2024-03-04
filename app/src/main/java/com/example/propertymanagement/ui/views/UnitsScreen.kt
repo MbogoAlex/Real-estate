@@ -2,12 +2,15 @@ package com.example.propertymanagement.ui.views
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
@@ -38,14 +44,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -69,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
+import com.example.propertymanagement.datasource.Datasource
 import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.Unit
@@ -76,6 +86,10 @@ import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.appViewModel.AppViewModel
 import com.example.propertymanagement.ui.state.AppUiState
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.rememberPagerState
 import kotlin.jvm.internal.Intrinsics.Kotlin
 
 @Composable
@@ -88,23 +102,24 @@ fun PropertyScreen(
 
     val navigationContentList = listOf<NavigationContent>(
         NavigationContent(
-            title = "Units",
-            icon = painterResource(id = R.drawable.home_tab),
+            title = "Listing",
+            icon = painterResource(id = R.drawable.units_listing),
             currentTab = Tab.UNITS
         ),
         NavigationContent(
-            title = "Invoice",
-            icon = painterResource(id = R.drawable.invoice_tab),
-            currentTab = Tab.INVOICE,
+            title = "My Units",
+            icon = painterResource(id = R.drawable.unit),
+            currentTab = Tab.MY_UNITS,
 
             ),
         NavigationContent(
-            title = "Payments",
-            icon = painterResource(id = R.drawable.payments_tab),
-            currentTab = Tab.PAYMENTS
-        ),
+            title = "Notifications",
+            icon = painterResource(id = R.drawable.notifications),
+            currentTab = Tab.NOTIFICATIONS,
+
+            ),
         NavigationContent(
-            title = "Account",
+            title = "Profile",
             icon = painterResource(id = R.drawable.account_tab),
             currentTab = Tab.ACCOUNT
         ),
@@ -125,19 +140,25 @@ fun PropertyScreen(
 
                 )
             }
-            Tab.INVOICE -> {
-                InvoiceScreen(
+            Tab.MY_UNITS -> {
+                MyUnitScreen(
                     modifier = Modifier
                         .weight(1f)
                 )
             }
-            Tab.PAYMENTS -> {
-                PaymentsScreen(
+            Tab.NOTIFICATIONS -> {
+                NotificationsScreen(
                     modifier = Modifier
                         .weight(1f)
                 )
             }
-            Tab.ACCOUNT -> {}
+
+            Tab.ACCOUNT -> {
+                AccountScreen(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+            }
         }
 
 
@@ -461,10 +482,31 @@ fun BottomNavigationBar(
     onTabClicked: (currentTab: Tab) -> kotlin.Unit,
     modifier: Modifier = Modifier,
 ) {
+
+//    BottomNavigation(
+//        backgroundColor = NavigationBarDefaults.containerColor,
+//        modifier = Modifier
+//            .fillMaxWidth()
+//    ) {
+//        for(navItem in navigationContentList) {
+//            BottomNavigationItem(
+//                selected = navItem.currentTab == currentTab,
+//                onClick = { onTabClicked(navItem.currentTab) },
+//                label = { Text(text = navItem.title) },
+//                selectedContentColor = Color.Red,
+//                icon = {
+//                    Icon(
+//                        painter = navItem.icon,
+//                        contentDescription = null
+//                    )
+//                }
+//            )
+//        }
+//    }
+
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .height(70.dp)
     ) {
         for(navItem in navigationContentList) {
             NavigationBarItem(
@@ -476,7 +518,8 @@ fun BottomNavigationBar(
                         painter = navItem.icon,
                         contentDescription = null
                     )
-                }
+                },
+
             )
         }
     }
@@ -510,3 +553,4 @@ fun ScrollableUnitsScreenCompactPreview(
         PropertyScreen()
     }
 }
+
