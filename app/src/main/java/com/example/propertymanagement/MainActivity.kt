@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.example.propertymanagement.ui.views.PropertyScreen
+import com.example.propertymanagement.ui.views.RegistrationScreen
 import com.example.propertymanagement.ui.views.UnitsScreen
 
 class MainActivity : ComponentActivity() {
@@ -24,25 +25,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PropertyScreen()
+                    RegistrationScreen()
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PropertyManagementTheme {
-        Greeting("Android")
     }
 }
