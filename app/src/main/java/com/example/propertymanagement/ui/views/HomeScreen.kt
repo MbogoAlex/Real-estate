@@ -1,16 +1,17 @@
 package com.example.propertymanagement.ui.views
 
-import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,26 +20,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.TextButton
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldColors
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,15 +47,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -66,8 +60,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,7 +73,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
-import com.example.propertymanagement.datasource.Datasource
 import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.Unit
@@ -90,11 +82,6 @@ import com.example.propertymanagement.ui.appViewModel.AppViewModel
 import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.state.AppUiState
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.google.accompanist.pager.rememberPagerState
-import kotlin.jvm.internal.Intrinsics.Kotlin
 
 object HomeDestination: NavigationDestination {
     override val route: String = "Home"
@@ -124,7 +111,7 @@ fun PropertyScreen(
 
     val navigationContentList = listOf<NavigationContent>(
         NavigationContent(
-            title = "Listing",
+            title = "Listings",
             icon = painterResource(id = R.drawable.units_listing),
             currentTab = Tab.UNITS
         ),
@@ -188,8 +175,6 @@ fun PropertyScreen(
                 )
             }
         }
-
-
         BottomNavigationBar(
             navigationContentList = navigationContentList,
             currentTab = uiState.currentTab,
@@ -221,7 +206,9 @@ fun UnitsScreen(
     var location by remember {
         mutableStateOf("")
     }
-
+     var showSearchField by remember {
+         mutableStateOf(false)
+     }
 
 
     if(uiState.showUnitDetails) {
@@ -235,149 +222,16 @@ fun UnitsScreen(
         Column(
             modifier = modifier
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(10.dp)
-            ) {
-                if(uiState.showFilteredUnits) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Home,
-                            contentDescription = null,
-                            modifier = Modifier
-//                                .padding(
-//                                    top = 13.dp
-//                                )
-                                .size(25.dp)
-                        )
-                        Text(
-                            text = items[selectedIndex].label,
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .clickable { expanded = true }
-
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier
-
-                        )
-                    }
-                } else {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Home,
-                            contentDescription = null,
-                            modifier = Modifier
-//                                .padding(
-//                                    top = 13.dp
-//                                )
-                                .size(25.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Select type",
-                            fontSize = 16.sp,
-                            modifier = Modifier
-                                .clickable { expanded = true }
-//                                .padding(
-//                                    top = 20.dp
-//                                )
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier
-
-                        )
-                    }
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    items.forEachIndexed { index, item ->
-                        DropdownMenuItem(
-                            text = { Text(text = item.label) },
-                            onClick = {
-                                selectedIndex = index
-                                filterUnits(items[selectedIndex])
-                                expanded = false
-                            }
-
-                        )
-                    }
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    items.forEachIndexed { index, item ->
-                        DropdownMenuItem(
-                            text = { Text(text = item.label) },
-                            onClick = {
-                                selectedIndex = index
-                                filterUnits(items[selectedIndex])
-                                expanded = false
-                            }
-
-                        )
-                    }
-                }
-            }
-
-            Card(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .clip(CircleShape)
-                    .fillMaxWidth()
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-                ) {
-                    BasicTextField(
-                        value = location,
-                        onValueChange = {
-                                        location = it
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            imeAction = ImeAction.Search
-                        ),
-                        decorationBox = { innerTextField ->
-                                        if(location.isEmpty()) {
-                                            Text(
-                                                text = "Search location",
-                                                style = TextStyle(color = Color.Gray),
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                        }
-                            innerTextField()
-
-                        },
-                        modifier = Modifier
-                            .padding(10.dp)
-                    )
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(
-                                end = 20.dp
-                            )
-                            .size(30.dp)
-                    )
-                }
-            }
-
+            TopMostBar(
+                searchLocation = "",
+                onSearchIconClicked = {
+                                      showSearchField = true
+                },
+                onStopSearchClicked = {
+                                      showSearchField = false
+                },
+                showSearchField = showSearchField,
+            )
             ScrollableUnitsScreen(
                 showSelectedUnit = showSelectedUnit,
                 isRegistered = false,
@@ -388,8 +242,305 @@ fun UnitsScreen(
 
 //                    .padding(10.dp)
             )
+        }
+
+    }
+}
+
+@Composable
+fun TopMostBar(
+    searchLocation: String,
+    onSearchIconClicked: () -> kotlin.Unit,
+    onStopSearchClicked: () -> kotlin.Unit,
+    showSearchField: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        if(showSearchField) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                SearchField(
+                    searchLocation = searchLocation,
+                    modifier = Modifier
+                        .weight(1f)
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.cancel),
+                    contentDescription = "Cancel searching",
+                    modifier = Modifier
+                        .padding(
+                            end = 10.dp
+                        )
+                        .clickable {
+                            onStopSearchClicked()
+                        }
+                )
+            }
+        } else {
+            TopBarTextAndImage(
+                onSearchIconClicked = { onSearchIconClicked() }
+            )
+        }
+        FilterBoxes()
+    }
+}
+
+@Composable
+fun TopBarTextAndImage(
+    onSearchIconClicked: () -> kotlin.Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                top = 10.dp,
+                bottom = 10.dp
+            )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 10.dp,
+                    end = 10.dp
+                )
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.prop_ease),
+                contentDescription = "App Icon",
+                modifier = Modifier
+                    .size(50.dp)
+            )
+            Text(
+                text = "PropEase",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(50.dp)
+                
+            ) {
+
+//            Spacer(modifier = Modifier.width(2.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.search),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clickable {
+                            onSearchIconClicked()
+                        }
+                        .align(Alignment.TopStart)
+                        .size(50.dp)
+                )
+            }
+
+        }
+    }
+}
+
+@Composable
+fun SearchField(
+    searchLocation: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                start = 10.dp,
+                top = 10.dp,
+                end = 10.dp
+            )
+    ) {
+        TextField(
+            value = "",
+            placeholder = {
+                          Text(
+                              text = "Search location",
+                              fontWeight = FontWeight.Light
+                          )
+            },
+            onValueChange = {},
+            shape = RoundedCornerShape(10.dp),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    modifier = Modifier
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun FilterBoxes(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                start = 10.dp,
+                top = 10.dp,
+                end = 10.dp,
+                bottom = 10.dp
+            )
+
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color.LightGray
+            ),
+            border = BorderStroke(
+                width = 1.dp,
+                color = Color.LightGray
+            ),
+            modifier = Modifier
+                .padding(
+                    end = 5.dp,
+                )
 
 
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "1 room",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .widthIn(min = 90.dp)
+                        .padding(10.dp)
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Select number of rooms"
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(5.dp))
+
+        Divider(
+            thickness = 5.dp,
+            modifier = Modifier
+                .width(1.dp)
+                .height(40.dp)
+        )
+
+        //Scrollable boxes
+        Spacer(modifier = Modifier.width(5.dp))
+
+        Row(
+            modifier = Modifier
+                .horizontalScroll(ScrollState(0))
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Cyan
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.LightGray
+                ),
+                modifier = Modifier
+                    .padding(
+                        start = 5.dp,
+                    )
+            ) {
+                Text(
+                    text = "Rentals",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .widthIn(min = 90.dp)
+                        .padding(10.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(5.dp))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.LightGray
+                ),
+                modifier = Modifier
+                    .padding(
+                        start = 5.dp,
+                    )
+
+            ) {
+                Text(
+                    text = "Airbnbs",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .widthIn(min = 90.dp)
+                        .padding(10.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(5.dp))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.LightGray
+                ),
+                modifier = Modifier
+                    .padding(
+                        start = 5.dp,
+                    )
+            ) {
+                Text(
+                    text = "Airbnbs",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .widthIn(min = 90.dp)
+                        .padding(10.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(5.dp))
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.Transparent
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.LightGray
+                ),
+                modifier = Modifier
+                    .padding(
+                        start = 5.dp,
+                    )
+            ) {
+                Text(
+                    text = "Airbnbs",
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .widthIn(min = 90.dp)
+                        .padding(10.dp)
+                )
+            }
         }
 
     }
@@ -434,7 +585,10 @@ fun UnitItem(
         Column(
             modifier = Modifier
                 .padding(
-                    10.dp
+                    start = 10.dp,
+//                    top = 10.dp,
+                    end = 10.dp,
+                    bottom = 10.dp
                 )
                 .clickable { showSelectedUnit(unit.id) }
         ) {
@@ -607,6 +761,47 @@ fun RegisterUserAlert(
             Text(text = "Sign in in order to show contact")
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SearchFieldPreview() {
+    PropertyManagementTheme {
+        SearchField(
+            searchLocation = ""
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TopMostBarPreview() {
+    PropertyManagementTheme {
+        TopMostBar(
+            searchLocation = "",
+            onSearchIconClicked = {},
+            onStopSearchClicked = {},
+            showSearchField = false
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TopBarTextAndImagePreview() {
+    PropertyManagementTheme {
+        TopBarTextAndImage(
+            onSearchIconClicked = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FilterBoxesPreview() {
+    PropertyManagementTheme {
+        FilterBoxes()
+    }
 }
 
 @Preview(showBackground = true)

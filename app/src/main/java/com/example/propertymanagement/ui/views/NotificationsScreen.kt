@@ -69,7 +69,7 @@ fun NotificationItem(
                 imageVector = Icons.Default.Notifications,
                 contentDescription = "Notification icon",
                 modifier = Modifier
-                    .size(50.dp)
+                    .size(20.dp)
             )
             Column {
                 Text(
