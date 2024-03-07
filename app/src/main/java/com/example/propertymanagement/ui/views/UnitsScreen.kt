@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Home
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -83,7 +85,9 @@ import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.Unit
 import com.example.propertymanagement.model.UnitType
+import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.appViewModel.AppViewModel
+import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.state.AppUiState
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -92,13 +96,31 @@ import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import kotlin.jvm.internal.Intrinsics.Kotlin
 
+object HomeDestination: NavigationDestination {
+    override val route: String = "Home"
+    override val titleRes: Int = R.string.units_screen
+}
 @Composable
 fun PropertyScreen(
     showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
+    navigateToRegistrationPage: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: AppViewModel = viewModel()
+    val viewModel: AppViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.uiState.collectAsState()
+
+    var showRegisterUserAlert by remember {
+        mutableStateOf(false)
+    }
+
+    if(showRegisterUserAlert) {
+        RegisterUserAlert(
+            onConfirmRequest = navigateToRegistrationPage,
+            onDismissRequest = {
+                showRegisterUserAlert = false
+            }
+        )
+    }
 
     val navigationContentList = listOf<NavigationContent>(
         NavigationContent(
@@ -135,6 +157,12 @@ fun PropertyScreen(
                     showSelectedUnit = { viewModel.showUnitDetails(it) },
                     onTabClicked = { currentTab ->  },
                     filterUnits = { viewModel.filterUnits(it) },
+                    showContact = {
+                        viewModel.checkIfRegistered()
+                        if(!uiState.isRegistered) {
+                            showRegisterUserAlert = true
+                        }
+                                  },
                     modifier = Modifier
                         .weight(1f)
 
@@ -180,6 +208,7 @@ fun UnitsScreen(
     showSelectedUnit: (unitId: Int) -> kotlin.Unit,
     onTabClicked: (currentTab: Tab) -> kotlin.Unit,
     filterUnits: (type: UnitType) -> kotlin.Unit,
+    showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember {
@@ -353,6 +382,7 @@ fun UnitsScreen(
                 showSelectedUnit = showSelectedUnit,
                 isRegistered = false,
                 appUiState = uiState,
+                showContact = showContact,
                 modifier = Modifier
                     .weight(1f)
 
@@ -370,6 +400,7 @@ fun ScrollableUnitsScreen(
     showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
     appUiState: AppUiState,
+    showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -379,8 +410,9 @@ fun ScrollableUnitsScreen(
         items(appUiState.unitsToDisplay.size) { index ->
             UnitItem(
                 showSelectedUnit = showSelectedUnit,
-                isRegistered = isRegistered,
+                isRegistered = appUiState.isRegistered,
                 unit = appUiState.unitsToDisplay[index],
+                showContact = showContact,
                 modifier = Modifier
 //                    .padding(
 //                        top = 10.dp
@@ -395,6 +427,7 @@ fun UnitItem(
     showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
     unit: Unit,
+    showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -459,7 +492,10 @@ fun UnitItem(
                 )
             } else {
                 Button(
-                    onClick = {  },
+                    onClick = {
+                           showContact()
+
+                    },
                     modifier = Modifier
 
                 ) {
@@ -544,13 +580,44 @@ fun TopBar(
     )
 }
 
+@Composable
+fun RegisterUserAlert(
+    onDismissRequest: () -> kotlin.Unit,
+    onConfirmRequest: () -> kotlin.Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = { 
+            onDismissRequest()
+        }, 
+        confirmButton = { 
+                        TextButton(onClick = { onConfirmRequest() }) {
+                            Text(text = "Sign in")
+                        }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismissRequest() }) {
+                Text(text = "Dismiss")
+            }
+        },
+        title = {
+            Text(text = "Cannot show contact")
+        },
+        text = {
+            Text(text = "Sign in in order to show contact")
+        }
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun ScrollableUnitsScreenCompactPreview(
     modifier: Modifier = Modifier
 ) {
     PropertyManagementTheme {
-        PropertyScreen()
+        PropertyScreen(
+            navigateToRegistrationPage = {}
+        )
     }
 }
 

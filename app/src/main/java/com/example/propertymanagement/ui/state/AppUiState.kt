@@ -12,7 +12,8 @@ data class AppUiState(
     val selectedUnit: Unit = Datasource.units.first { it.id == 1 },
     val currentTab: Tab = Tab.UNITS,
     val showUnitDetails: Boolean = false,
-    val showFilteredUnits: Boolean = false
+    val showFilteredUnits: Boolean = false,
+    val isRegistered: Boolean = false
 
 ) {
     val unitsToDisplay: List<Unit> by lazy {

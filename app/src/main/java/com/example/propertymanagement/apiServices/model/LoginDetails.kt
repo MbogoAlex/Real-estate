@@ -13,8 +13,13 @@ data class LoginDetails(
 data class LoginResponseStatus(
     val statusCode: Int,
     val message: String,
-    val data: LoginUser
+    val data: LoginData
 )
+@Serializable
+data class LoginData(
+    val user: LoginUser
+)
+
 @Serializable
 data class LoginUser(
     val userInfo: LoginUserInfo,

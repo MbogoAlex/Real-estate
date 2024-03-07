@@ -1,5 +1,6 @@
 package com.example.propertymanagement.ui.views
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,6 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class RegistrationStatus {
+    START,
+    LOADING,
+    SUCCESS,
+    FAIL
+}
 data class UserDetails(
     val firstName: String,
     val middleName: String,
@@ -24,12 +31,16 @@ data class UserDetails(
 
 data class RegistrationScreenUiState(
     val userDetails: UserDetails = UserDetails("", "", "", "", "", ""),
-    val buttonEnabled: Boolean
+    val registrationSuccess: Boolean,
+    val buttonEnabled: Boolean,
+    val registrationStatus: RegistrationStatus
 )
 class RegistrationViewModel(private val pMangerApiRepository: PMangerApiRepository): ViewModel() {
     var userDetails by mutableStateOf(UserDetails("", "", "", "", "", ""))
     private val _uiState = MutableStateFlow(value = RegistrationScreenUiState(
-        buttonEnabled = false
+        buttonEnabled = checkIfFieldsAreFilled(),
+        registrationSuccess = false,
+        registrationStatus = RegistrationStatus.START
     ))
     val uiState: StateFlow<RegistrationScreenUiState> = _uiState.asStateFlow()
 
@@ -47,8 +58,30 @@ class RegistrationViewModel(private val pMangerApiRepository: PMangerApiReposito
     }
 
     fun registerUser() {
+        _uiState.update {
+            it.copy(
+                registrationStatus = RegistrationStatus.LOADING
+            )
+        }
         viewModelScope.launch {
-            pMangerApiRepository.registerUser(userDetails.toUser())
+            val response = pMangerApiRepository.registerUser(userDetails.toUser())
+            Log.i("LOGIN_TAG", response.toString())
+            Log.i("LOGIN_SUCCESS", response.isSuccessful.toString())
+            if(response.isSuccessful) {
+                _uiState.update {
+                    it.copy(
+                        registrationSuccess = true,
+                        registrationStatus = RegistrationStatus.SUCCESS
+                    )
+                }
+                Log.i("UI_UPDATE", _uiState.value.registrationSuccess.toString())
+            } else {
+                _uiState.update {
+                    it.copy(
+                        registrationStatus = RegistrationStatus.FAIL
+                    )
+                }
+            }
         }
     }
 }

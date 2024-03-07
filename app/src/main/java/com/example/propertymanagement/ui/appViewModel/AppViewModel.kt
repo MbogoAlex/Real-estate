@@ -1,19 +1,32 @@
 package com.example.propertymanagement.ui.appViewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.propertymanagement.SFServices.PManagerSFRepository
+import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import com.example.propertymanagement.datasource.Datasource
 import com.example.propertymanagement.model.Tab
 import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.state.AppUiState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class AppViewModel: ViewModel() {
+class AppViewModel(
+    private val pManagerApiRepository: PMangerApiRepository,
+    private val pManagerSFRepository: PManagerSFRepository,
+): ViewModel() {
     private val _uiState = MutableStateFlow(value = AppUiState())
     val uiState: StateFlow<AppUiState> = _uiState.asStateFlow()
-
     fun intializeApp() {
         val allUnits = Datasource.units
         _uiState.value = AppUiState(
@@ -29,6 +42,7 @@ class AppViewModel: ViewModel() {
 
     init {
         intializeApp()
+        checkIfRegistered()
     }
 
     fun filterUnits(unitType: UnitType) {
@@ -55,6 +69,24 @@ class AppViewModel: ViewModel() {
                 showUnitDetails = false
             )
         }
+    }
+
+
+
+    fun checkIfRegistered() {
+        viewModelScope.launch {
+            pManagerSFRepository.sfUserId.collect {userId ->
+                Log.i("CUR_USER", userId.toString())
+                if(userId != null) {
+                    _uiState.update {
+                        it.copy(
+                            isRegistered = true
+                        )
+                    }
+                }
+            }
+        }
+
     }
 
     fun switchTab(tab: Tab) {

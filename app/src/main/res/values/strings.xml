@@ -23,4 +23,9 @@
         • Parking spot available\n
     </string>
 
+    <string name="units_screen">Units screen</string>
+    <string name="unit_details">Unit details</string>
+    <string name="registration_screen">Registration screen</string>
+    <string name="login_screen">Login screen</string>
+
 </resources>

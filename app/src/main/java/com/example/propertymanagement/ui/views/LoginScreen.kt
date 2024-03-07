@@ -37,15 +37,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.propertymanagement.R
 import com.example.propertymanagement.ui.AppViewModelFactory
+import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 
+object LoginScreenDestination: NavigationDestination {
+    override val route: String = "Sign in"
+    override val titleRes: Int = R.string.login_screen
+    val phoneNumber: String = "phoneNumber"
+    val password: String = "password"
+    val routeWithArgs = "$route/{$phoneNumber}/{$password}"
+}
 @Composable
 fun LoginScreen(
+    proceedToHomeScreen: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
     val viewModel: LoginViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.uiState.collectAsState()
+    when(uiState.loginSuccessful) {
+        true -> proceedToHomeScreen()
+        else -> {}
+    }
     Column(
 //        verticalArrangement = Arrangement.Center,
         modifier = Modifier
@@ -117,6 +131,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         viewModel.loginUser()
+
                     },
                     enabled = uiState.buttonEnabled,
                     modifier = Modifier
@@ -163,6 +178,8 @@ fun LoginScreen(
 fun LoginScreenPreview()
 {
     PropertyManagementTheme {
-        LoginScreen()
+        LoginScreen(
+            proceedToHomeScreen = {}
+        )
     }
 }

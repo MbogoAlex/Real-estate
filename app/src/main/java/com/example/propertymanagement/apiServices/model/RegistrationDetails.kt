@@ -11,3 +11,9 @@ data class RegistrationDetails(
     val phoneNumber: String,
     val password: String,
 )
+
+@Serializable
+data class RegistrationResponseStatus(
+    val statusCode: Int,
+    val message: String
+)
