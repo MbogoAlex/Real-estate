@@ -1,6 +1,6 @@
 package com.example.propertymanagement.model
 
-enum class Tab {
+enum class BottomTab {
     UNITS,
     MY_UNITS,
     NOTIFICATIONS,

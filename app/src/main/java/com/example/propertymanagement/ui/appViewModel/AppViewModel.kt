@@ -6,18 +6,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import com.example.propertymanagement.datasource.Datasource
-import com.example.propertymanagement.model.Tab
-import com.example.propertymanagement.model.UnitType
+import com.example.propertymanagement.model.BottomTab
 import com.example.propertymanagement.ui.state.AppUiState
-import kotlinx.coroutines.flow.Flow
+import com.example.propertymanagement.ui.views.ListingsType
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -30,11 +24,11 @@ class AppViewModel(
     fun intializeApp() {
         val allUnits = Datasource.units
         _uiState.value = AppUiState(
-            units = allUnits.groupBy { it.unitType },
+            units = allUnits.groupBy { it.listingsType },
             unfilteredUnits = allUnits,
-            unitType = UnitType.BED_SITTER,
+            unitType = ListingsType.RENTALS,
             selectedUnit = allUnits.first { it.id == 1 },
-            currentTab = Tab.UNITS,
+            currentTab = BottomTab.UNITS,
             showUnitDetails = false,
             showFilteredUnits = false,
         )
@@ -45,7 +39,8 @@ class AppViewModel(
         checkIfRegistered()
     }
 
-    fun filterUnits(unitType: UnitType) {
+    fun filterUnits(unitType: ListingsType) {
+
         _uiState.update {
             it.copy(
                 unitType = unitType,
@@ -89,7 +84,7 @@ class AppViewModel(
 
     }
 
-    fun switchTab(tab: Tab) {
+    fun switchTab(tab: BottomTab) {
         _uiState.update {
             it.copy(
                 currentTab = tab

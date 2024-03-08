@@ -6,8 +6,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -23,29 +21,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldColors
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,13 +52,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -77,11 +63,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
 import com.example.propertymanagement.model.NavigationContent
-import com.example.propertymanagement.model.Tab
-import com.example.propertymanagement.model.Unit
+import com.example.propertymanagement.model.BottomTab
+import com.example.propertymanagement.model.PropertyUnit
 import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.AppViewModelFactory
-import com.example.propertymanagement.ui.appViewModel.AppViewModel
 import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.state.AppUiState
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
@@ -92,12 +77,17 @@ object HomeDestination: NavigationDestination {
 }
 @Composable
 fun PropertyScreen(
-    showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
+    navigateToUnit: (unitId: String) -> kotlin.Unit = {id -> },
+    onBackButtonPressed: () -> Unit,
     navigateToRegistrationPage: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
-    val viewModel: AppViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    val uiState by viewModel.uiState.collectAsState()
+
+
+    val viewModel: HomeScreenViewModel = viewModel(factory = AppViewModelFactory.Factory)
+    val listingsUiState by viewModel.listingsUiState.collectAsState()
+    val bottomBarUiState by viewModel.bottomBarUiState.collectAsState()
+
 
     var showRegisterUserAlert by remember {
         mutableStateOf(false)
@@ -116,62 +106,69 @@ fun PropertyScreen(
         NavigationContent(
             title = "Listings",
             icon = painterResource(id = R.drawable.units_listing),
-            currentTab = Tab.UNITS
+            currentTab = BottomTab.UNITS
         ),
         NavigationContent(
             title = "My Units",
             icon = painterResource(id = R.drawable.unit),
-            currentTab = Tab.MY_UNITS,
+            currentTab = BottomTab.MY_UNITS,
 
             ),
         NavigationContent(
             title = "Notifications",
             icon = painterResource(id = R.drawable.notifications),
-            currentTab = Tab.NOTIFICATIONS,
+            currentTab = BottomTab.NOTIFICATIONS,
 
             ),
         NavigationContent(
             title = "Profile",
             icon = painterResource(id = R.drawable.account_tab),
-            currentTab = Tab.ACCOUNT
+            currentTab = BottomTab.ACCOUNT
         ),
 
         )
 
     Column {
-        when(uiState.currentTab) {
-            Tab.UNITS -> {
+        when(bottomBarUiState.bottomTab) {
+            BottomTab.UNITS -> {
                 UnitsScreen(
-                    uiState = uiState,
-                    onBackButtonPressed = { viewModel.onBackButtonClicked() },
-                    showSelectedUnit = { viewModel.showUnitDetails(it) },
+                    listingsUiState = listingsUiState,
+//                    onBackButtonPressed = { viewModel.onBackButtonClicked() },
+//                    showSelectedUnit = { viewModel.showUnitDetails(it) },
                     onTabClicked = { currentTab ->  },
-                    filterUnits = { viewModel.filterUnits(it) },
+                    filterUnits = { viewModel.filterUnits(
+                        ListingsType.RENTALS,
+                        PropertyRooms.ONE
+                        ) },
                     showContact = {
-                        viewModel.checkIfRegistered()
-                        if(!uiState.isRegistered) {
+                        if(viewModel.userRegistered) {
                             showRegisterUserAlert = true
                         }
-                                  },
+                    },
+                    navigateToUnit = {
+                        navigateToUnit(it.toString())
+                    },
+                    isRegistered = viewModel.userRegistered,
                     modifier = Modifier
                         .weight(1f)
 
                 )
             }
-            Tab.MY_UNITS -> {
+            BottomTab.MY_UNITS -> {
                 MyUnitScreen(
+                    onBackButtonClicked = {},
                     modifier = Modifier
                         .weight(1f)
                 )
             }
-            Tab.NOTIFICATIONS -> {
+            BottomTab.NOTIFICATIONS -> {
                 NotificationsScreen(
                     modifier = Modifier
                         .weight(1f)
                 )
             }
 
-            Tab.ACCOUNT -> {
+            BottomTab.ACCOUNT -> {
                 AccountScreen(
                     modifier = Modifier
                         .weight(1f)
@@ -180,7 +177,7 @@ fun PropertyScreen(
         }
         BottomNavigationBar(
             navigationContentList = navigationContentList,
-            currentTab = uiState.currentTab,
+            currentTab = bottomBarUiState.bottomTab,
             onTabClicked = { currentTab ->  viewModel.switchTab(currentTab)},
         )
     }
@@ -191,11 +188,13 @@ fun PropertyScreen(
 
 @Composable
 fun UnitsScreen(
-    uiState: AppUiState,
-    onBackButtonPressed: () -> kotlin.Unit,
-    showSelectedUnit: (unitId: Int) -> kotlin.Unit,
-    onTabClicked: (currentTab: Tab) -> kotlin.Unit,
+    listingsUiState: ListingsUiState,
+    navigateToUnit: (unitId: Int) -> Unit,
+//    onBackButtonPressed: () -> kotlin.Unit,
+//    showSelectedUnit: (unitId: Int) -> kotlin.Unit,
+    onTabClicked: (currentTab: BottomTab) -> kotlin.Unit,
     filterUnits: (type: UnitType) -> kotlin.Unit,
+    isRegistered: Boolean,
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -214,39 +213,30 @@ fun UnitsScreen(
      }
 
 
-    if(uiState.showUnitDetails) {
-
-        UnitDetails(
-            unit = uiState.selectedUnit,
-            isRegistered = false,
-            onBackButtonPressed = onBackButtonPressed
+    Column(
+        modifier = modifier
+    ) {
+        TopMostBar(
+            searchLocation = "",
+            onSearchIconClicked = {
+                showSearchField = true
+            },
+            onStopSearchClicked = {
+                showSearchField = false
+            },
+            showSearchField = showSearchField,
         )
-    } else {
-        Column(
-            modifier = modifier
-        ) {
-            TopMostBar(
-                searchLocation = "",
-                onSearchIconClicked = {
-                                      showSearchField = true
-                },
-                onStopSearchClicked = {
-                                      showSearchField = false
-                },
-                showSearchField = showSearchField,
-            )
-            ScrollableUnitsScreen(
-                showSelectedUnit = showSelectedUnit,
-                isRegistered = false,
-                appUiState = uiState,
-                showContact = showContact,
-                modifier = Modifier
-                    .weight(1f)
+        ScrollableUnitsScreen(
+            navigateToUnit = navigateToUnit,
+//            showSelectedUnit = showSelectedUnit,
+            isRegistered = isRegistered,
+            listingsUiState = listingsUiState,
+            showContact = showContact,
+            modifier = Modifier
+                .weight(1f)
 
 //                    .padding(10.dp)
-            )
-        }
-
+        )
     }
 }
 
@@ -547,9 +537,9 @@ fun FilterBoxes(
 
 @Composable
 fun ScrollableUnitsScreen(
-    showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
+    navigateToUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
-    appUiState: AppUiState,
+    listingsUiState: ListingsUiState,
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -557,11 +547,11 @@ fun ScrollableUnitsScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
-        items(appUiState.unitsToDisplay.size) { index ->
+        items(listingsUiState.unitsToDisplay.size) { index ->
             UnitItem(
-                showSelectedUnit = showSelectedUnit,
-                isRegistered = appUiState.isRegistered,
-                unit = appUiState.unitsToDisplay[index],
+                navigateToUnit = navigateToUnit,
+                isRegistered = isRegistered,
+                unit = listingsUiState.unitsToDisplay[index],
                 showContact = showContact,
                 modifier = Modifier
 //                    .padding(
@@ -574,9 +564,9 @@ fun ScrollableUnitsScreen(
 
 @Composable
 fun UnitItem(
-    showSelectedUnit: (unitId: Int) -> kotlin.Unit = {id -> },
+    navigateToUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
-    unit: Unit,
+    unit: PropertyUnit,
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -589,7 +579,7 @@ fun UnitItem(
                     end = 10.dp,
                     bottom = 10.dp
                 )
-                .clickable { showSelectedUnit(unit.id) }
+                .clickable { navigateToUnit(unit.id) }
         ) {
             Image(
                 painter = painterResource(id = unit.images.first { it.id == 1 }.image),
@@ -632,7 +622,7 @@ fun UnitItem(
                     contentDescription = null,
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable { showSelectedUnit(unit.id) }
+                        .clickable { navigateToUnit(unit.id) }
 //                        .align(Alignment.End)
                 )
             }
@@ -667,8 +657,8 @@ fun UnitItem(
 @Composable
 fun BottomNavigationBar(
     navigationContentList: List<NavigationContent>,
-    currentTab: Tab,
-    onTabClicked: (currentTab: Tab) -> kotlin.Unit,
+    currentTab: BottomTab,
+    onTabClicked: (currentTab: BottomTab) -> kotlin.Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -810,6 +800,7 @@ fun ScrollableUnitsScreenCompactPreview(
 ) {
     PropertyManagementTheme {
         PropertyScreen(
+            onBackButtonPressed = {},
             navigateToRegistrationPage = {}
         )
     }

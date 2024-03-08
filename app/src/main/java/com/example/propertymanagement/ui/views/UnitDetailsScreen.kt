@@ -20,6 +20,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -29,22 +31,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.propertymanagement.R
 import com.example.propertymanagement.datasource.Datasource
-import com.example.propertymanagement.model.Unit
+import com.example.propertymanagement.model.PropertyUnit
+import com.example.propertymanagement.ui.AppViewModelFactory
+import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 
+object UnitDetailsScreenDestination: NavigationDestination {
+    override val route: String = "unitDetails"
+    override val titleRes: Int = R.string.unit_details_screen
+    val unitId: String = "unitId"
+    val routeWithArgs: String = "$route/{$unitId}"
+}
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun UnitDetails(
-    unit: Unit,
-    isRegistered: Boolean,
+//    unit: PropertyUnit,
+//    isRegistered: Boolean,
     onBackButtonPressed: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
+    val viewModel: UnitsDetailsScreenViewModel = viewModel(factory = AppViewModelFactory.Factory)
+    val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(initialPage = 0)
 
     BackHandler {
@@ -73,10 +87,10 @@ fun UnitDetails(
             }
         }
         Card {
-            HorizontalPager(count = unit.images.size, state = pagerState) { page ->
+            HorizontalPager(count = uiState.propertyUnit.images.size, state = pagerState) { page ->
                 Image(
-                    painter = painterResource(id = unit.images[page].image),
-                    contentDescription = stringResource(id = unit.name),
+                    painter = painterResource(id = uiState.propertyUnit.images[page].image),
+                    contentDescription = stringResource(id = uiState.propertyUnit.name),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -94,30 +108,30 @@ fun UnitDetails(
         Row {
             Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
             Text(
-                text = stringResource(id = unit.location)
+                text = stringResource(id = uiState.propertyUnit.location)
             )
         }
 
         Text(
-            text = stringResource(id = unit.name),
+            text = stringResource(id = uiState.propertyUnit.name),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = stringResource(id = unit.description),
+            text = stringResource(id = uiState.propertyUnit.description),
             fontSize = 16.sp,
 
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = "Seller: ${unit.seller.name}",
+            text = "Seller: ${uiState.propertyUnit.seller.name}",
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(10.dp))
-        if(isRegistered) {
+        if(viewModel.userRegistered) {
             Text(
-                text = unit.seller.phoneNumber,
+                text = uiState.propertyUnit.seller.phoneNumber,
                 modifier = Modifier
                     .align(Alignment.End)
             )
@@ -142,9 +156,9 @@ fun UnitDetailsCompactPreview(
 ) {
     PropertyManagementTheme {
         UnitDetails(
-            isRegistered = false,
+
             onBackButtonPressed = {},
-            unit = Datasource.units.first { it.id == 1 }
+
         )
     }
 }

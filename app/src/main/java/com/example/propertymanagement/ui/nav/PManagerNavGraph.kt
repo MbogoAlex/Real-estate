@@ -11,9 +11,12 @@ import androidx.navigation.navArgument
 import com.example.propertymanagement.ui.views.HomeDestination
 import com.example.propertymanagement.ui.views.LoginScreen
 import com.example.propertymanagement.ui.views.LoginScreenDestination
+import com.example.propertymanagement.ui.views.MyUnitScreen
 import com.example.propertymanagement.ui.views.PropertyScreen
 import com.example.propertymanagement.ui.views.RegistrationScreen
 import com.example.propertymanagement.ui.views.RegistrationScreenDestination
+import com.example.propertymanagement.ui.views.UnitDetails
+import com.example.propertymanagement.ui.views.UnitDetailsScreenDestination
 
 @Composable
 fun PManagerNavHost(
@@ -27,6 +30,10 @@ fun PManagerNavHost(
     ) {
         composable(route = HomeDestination.route) {
             PropertyScreen(
+                navigateToUnit = { navController.navigate(
+                    "${UnitDetailsScreenDestination.route}/${it}"
+                ) },
+                onBackButtonPressed = { navController.navigateUp() },
                 navigateToRegistrationPage = {
                     navController.navigate(RegistrationScreenDestination.route)
                 }
@@ -59,6 +66,16 @@ fun PManagerNavHost(
                     navController.navigate(HomeDestination.route)
                 }
             )
+        }
+        composable(
+            route = UnitDetailsScreenDestination.routeWithArgs,
+            arguments = listOf(
+                navArgument(UnitDetailsScreenDestination.unitId) {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            UnitDetails(onBackButtonPressed = { navController.navigateUp() })
         }
     }
 }

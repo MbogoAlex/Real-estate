@@ -27,5 +27,6 @@
     <string name="unit_details">Unit details</string>
     <string name="registration_screen">Registration screen</string>
     <string name="login_screen">Login screen</string>
+    <string name="unit_details_screen">Unit details screen</string>
 
 </resources>

@@ -1,11 +1,7 @@
 package com.example.propertymanagement.ui.views
 
-import android.widget.Space
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -52,6 +47,7 @@ import com.google.accompanist.pager.rememberPagerState
 
 @Composable
 fun MyUnitScreen(
+    onBackButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val myUnit = Datasource.units[0]
@@ -119,7 +115,7 @@ fun MyUnitScreen(
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun MyUnitDetails(
-    unit: com.example.propertymanagement.model.Unit,
+    unit: com.example.propertymanagement.model.PropertyUnit,
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
@@ -260,6 +256,8 @@ private data class MyUnitNavContent(
 @Composable
 fun MyUnitScreenPreview() {
     PropertyManagementTheme {
-        MyUnitScreen()
+        MyUnitScreen(
+            onBackButtonClicked = {}
+        )
     }
 }

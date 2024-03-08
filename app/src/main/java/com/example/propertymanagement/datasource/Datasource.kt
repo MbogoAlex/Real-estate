@@ -2,9 +2,9 @@ package com.example.propertymanagement.datasource
 
 import com.example.propertymanagement.R
 import com.example.propertymanagement.model.Seller
-import com.example.propertymanagement.model.Unit
+import com.example.propertymanagement.model.PropertyUnit
 import com.example.propertymanagement.model.UnitImage
-import com.example.propertymanagement.model.UnitType
+import com.example.propertymanagement.ui.views.ListingsType
 
 object Datasource {
     val bedsitters = listOf<UnitImage>(
@@ -45,11 +45,11 @@ object Datasource {
         )
     )
 
-    val units = listOf<Unit>(
-        Unit(
+    val units = listOf<PropertyUnit>(
+        PropertyUnit(
             1,
             R.string.spacious_bedsitter,
-            UnitType.BED_SITTER,
+            ListingsType.RENTALS,
             R.string.bedsitter_description,
             R.string.nairobi,
             bedsitters,
@@ -59,10 +59,10 @@ object Datasource {
                 "0794649026"
             )
         ),
-        Unit(
+        PropertyUnit(
             2,
             R.string.spacious_bedsitter,
-            UnitType.BED_SITTER,
+            ListingsType.AIRBNB,
             R.string.bedsitter_description,
             R.string.nairobi,
             bedsitters,
@@ -72,10 +72,10 @@ object Datasource {
                 "0794649027"
             )
         ),
-        Unit(
+        PropertyUnit(
             3,
             R.string.spacious_bedsitter,
-            UnitType.BED_SITTER,
+            ListingsType.RENTALS,
             R.string.bedsitter_description,
             R.string.nairobi,
             bedsitters,
@@ -85,10 +85,10 @@ object Datasource {
                 "0894649026"
             )
         ),
-        Unit(
+        PropertyUnit(
             4,
             R.string.spacious_bedsitter,
-            UnitType.BED_SITTER,
+            ListingsType.AIRBNB,
             R.string.bedsitter_description,
             R.string.nakuru,
             bedsitters,
@@ -98,10 +98,10 @@ object Datasource {
                 "0774649054"
             )
         ),
-        Unit(
+        PropertyUnit(
             5,
             R.string.spacious_bedsitter,
-            UnitType.BED_SITTER,
+            ListingsType.RENTALS,
             R.string.bedsitter_description,
             R.string.nakuru,
             bedsitters,
@@ -111,10 +111,10 @@ object Datasource {
                 "0784649054"
             )
         ),
-        Unit(
+        PropertyUnit(
             6,
             R.string.one_bedroom,
-            UnitType.ONE_BEDROOM,
+            ListingsType.AIRBNB,
             R.string.one_bedroom_description,
             R.string.nairobi,
             oneBedrooms,
@@ -124,10 +124,10 @@ object Datasource {
                 "0774649054"
             )
         ),
-        Unit(
+        PropertyUnit(
             7,
             R.string.one_bedroom,
-            UnitType.ONE_BEDROOM,
+            ListingsType.RENTALS,
             R.string.one_bedroom_description,
             R.string.nairobi,
             oneBedrooms,
@@ -137,10 +137,10 @@ object Datasource {
                 "0774649054"
             )
         ),
-        Unit(
+        PropertyUnit(
             8,
             R.string.one_bedroom,
-            UnitType.ONE_BEDROOM,
+            ListingsType.AIRBNB,
             R.string.one_bedroom_description,
             R.string.nakuru,
             oneBedrooms,

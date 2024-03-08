@@ -7,8 +7,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.propertymanagement.PManagerApplication
 import com.example.propertymanagement.ui.appViewModel.AppViewModel
+import com.example.propertymanagement.ui.views.HomeScreenViewModel
 import com.example.propertymanagement.ui.views.LoginViewModel
 import com.example.propertymanagement.ui.views.RegistrationViewModel
+import com.example.propertymanagement.ui.views.UnitsDetailsScreenViewModel
 
 object AppViewModelFactory {
     val Factory = viewModelFactory {
@@ -29,6 +31,27 @@ object AppViewModelFactory {
             val pManagerSFRepository =  pManagerApplication().pManagerSFRepository
             LoginViewModel(
                 pMangerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository,
+                savedStateHandle = this.createSavedStateHandle()
+            )
+        }
+
+        //initialize HomeScreenViewModel
+        initializer {
+            val pManagerApiRepository = pManagerApplication().container.pMangerApiRepository
+            val pManagerSFRepository =  pManagerApplication().pManagerSFRepository
+            HomeScreenViewModel(
+                pManagerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository
+            )
+        }
+
+        //initialize UnitDetailsViewModel
+        initializer {
+            val pManagerApiRepository = pManagerApplication().container.pMangerApiRepository
+            val pManagerSFRepository =  pManagerApplication().pManagerSFRepository
+            UnitsDetailsScreenViewModel(
+                pManagerApiRepository = pManagerApiRepository,
                 pManagerSFRepository = pManagerSFRepository,
                 savedStateHandle = this.createSavedStateHandle()
             )
