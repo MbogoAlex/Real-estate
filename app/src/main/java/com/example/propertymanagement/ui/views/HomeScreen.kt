@@ -1,5 +1,8 @@
 package com.example.propertymanagement.ui.views
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -258,6 +261,12 @@ fun TopMostBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+            )
     ) {
         if(showSearchField) {
             Row(
@@ -300,8 +309,8 @@ fun TopBarTextAndImage(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                top = 10.dp,
-                bottom = 10.dp
+                top = 2.dp,
+                bottom = 2.dp
             )
     ) {
         Row(
@@ -314,35 +323,25 @@ fun TopBarTextAndImage(
                 )
         ) {
             Image(
-                painter = painterResource(id = R.drawable.prop_ease),
+                painter = painterResource(id = R.drawable.prop_ease_3),
                 contentDescription = "App Icon",
                 modifier = Modifier
-                    .size(50.dp)
+                    .width(90.dp)
+                    .height(60.dp)
             )
             Text(
                 text = "PropEase",
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.weight(1f))
-            Box(
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
                 modifier = Modifier
-                    .height(50.dp)
-                    .width(50.dp)
-                
-            ) {
-
-//            Spacer(modifier = Modifier.width(2.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.search),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .clickable {
-                            onSearchIconClicked()
-                        }
-                        .align(Alignment.TopStart)
-                        .size(50.dp)
-                )
-            }
+                    .clickable {
+                        onSearchIconClicked()
+                    }
+            )
 
         }
     }
