@@ -32,6 +32,11 @@ class UnitsDetailsScreenViewModel(
         viewModelScope.launch {
             val userId = pManagerSFRepository.sfUserId.collect() { userId ->
                 userRegistered = userId != null
+                _uiState.update {
+                    it.copy(
+                        userRegistered = userRegistered
+                    )
+                }
             }
         }
     }

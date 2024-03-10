@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -18,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +43,7 @@ import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
+import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 
 object UnitDetailsScreenDestination: NavigationDestination {
@@ -51,7 +54,7 @@ object UnitDetailsScreenDestination: NavigationDestination {
 }
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun UnitDetails(
+fun UnitDetailsScreen(
 //    unit: PropertyUnit,
 //    isRegistered: Boolean,
     onBackButtonPressed: () -> kotlin.Unit,
@@ -68,24 +71,31 @@ fun UnitDetails(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp)
             .verticalScroll(ScrollState(0))
     ) {
-        Row {
-            IconButton(
-                onClick = { onBackButtonPressed() },
-                modifier = Modifier
-                    .padding(
-                        bottom = 10.dp
-                    )
+        UnitDetailsHeader(
+            onBackButtonPressed = { onBackButtonPressed() },
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+        UnitDetails(
+            pagerState = pagerState,
+            uiState = uiState
+        )
+    }
+}
 
-            ) {
-               Icon(
-                   imageVector = Icons.Default.ArrowBack,
-                   contentDescription = null,
-                   )
-            }
-        }
+@OptIn(ExperimentalPagerApi::class)
+@Composable
+fun UnitDetails(
+    pagerState: PagerState,
+    uiState: UnitDetailsUiState,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = Modifier
+            .padding(10.dp)
+    ) {
         Card {
             HorizontalPager(count = uiState.propertyUnit.images.size, state = pagerState) { page ->
                 Image(
@@ -122,18 +132,18 @@ fun UnitDetails(
             text = stringResource(id = uiState.propertyUnit.description),
             fontSize = 16.sp,
 
-        )
+            )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Seller: ${uiState.propertyUnit.seller.name}",
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(10.dp))
-        if(viewModel.userRegistered) {
+        if(uiState.userRegistered) {
             Text(
                 text = uiState.propertyUnit.seller.phoneNumber,
                 modifier = Modifier
-                    .align(Alignment.End)
+//                    .align(Alignment.End)
             )
         } else {
             Button(
@@ -148,6 +158,53 @@ fun UnitDetails(
         }
     }
 }
+@Composable
+fun UnitDetailsHeader(
+    onBackButtonPressed: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shadowElevation = 9.dp,
+        modifier = modifier
+    ) {
+        Row(
+            //        horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 10.dp,
+                    end = 10.dp
+                )
+        ) {
+            IconButton(
+                onClick = { onBackButtonPressed() },
+                modifier = Modifier
+                    .padding(
+                        bottom = 10.dp
+                    )
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = null,
+                )
+            }
+            Image(
+                painter = painterResource(id = R.drawable.prop_ease_3),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(90.dp)
+                    .height(60.dp)
+            )
+            Text(
+                text = "PropEase",
+                fontWeight = FontWeight.Bold
+            )
+            
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -155,7 +212,7 @@ fun UnitDetailsCompactPreview(
     modifier: Modifier = Modifier
 ) {
     PropertyManagementTheme {
-        UnitDetails(
+        UnitDetailsScreen(
 
             onBackButtonPressed = {},
 

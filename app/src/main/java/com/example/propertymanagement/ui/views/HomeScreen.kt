@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Surface
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -50,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -142,6 +145,8 @@ fun PropertyScreen(
                         ) },
                     showContact = {
                         if(viewModel.userRegistered) {
+                            showRegisterUserAlert = false
+                        } else {
                             showRegisterUserAlert = true
                         }
                     },
@@ -178,6 +183,8 @@ fun PropertyScreen(
         BottomNavigationBar(
             navigationContentList = navigationContentList,
             currentTab = bottomBarUiState.bottomTab,
+            newNotification = true,
+            numberOfNotifications = 3,
             onTabClicked = { currentTab ->  viewModel.switchTab(currentTab)},
         )
     }
@@ -226,6 +233,7 @@ fun UnitsScreen(
             },
             showSearchField = showSearchField,
         )
+
         ScrollableUnitsScreen(
             navigateToUnit = navigateToUnit,
 //            showSelectedUnit = showSelectedUnit,
@@ -295,7 +303,8 @@ fun TopBarTextAndImage(
     onSearchIconClicked: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Surface(
+        elevation = 9.dp,
         modifier = Modifier
             .fillMaxWidth()
             .padding(
@@ -388,10 +397,10 @@ fun FilterBoxes(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = 10.dp,
+                start = 15.dp,
                 top = 10.dp,
                 end = 10.dp,
-                bottom = 10.dp
+                bottom = 15.dp
             )
 
     ) {
@@ -656,51 +665,80 @@ fun UnitItem(
 
 @Composable
 fun BottomNavigationBar(
+    newNotification: Boolean,
+    numberOfNotifications: Int,
     navigationContentList: List<NavigationContent>,
     currentTab: BottomTab,
     onTabClicked: (currentTab: BottomTab) -> kotlin.Unit,
     modifier: Modifier = Modifier,
 ) {
-
-//    BottomNavigation(
-//        backgroundColor = NavigationBarDefaults.containerColor,
-//        modifier = Modifier
-//            .fillMaxWidth()
-//    ) {
-//        for(navItem in navigationContentList) {
-//            BottomNavigationItem(
-//                selected = navItem.currentTab == currentTab,
-//                onClick = { onTabClicked(navItem.currentTab) },
-//                label = { Text(text = navItem.title) },
-//                selectedContentColor = Color.Red,
-//                icon = {
-//                    Icon(
-//                        painter = navItem.icon,
-//                        contentDescription = null
-//                    )
-//                }
-//            )
-//        }
-//    }
-
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        for(navItem in navigationContentList) {
+        for ((index, navItem) in navigationContentList.withIndex()) {
             NavigationBarItem(
                 selected = navItem.currentTab == currentTab,
                 onClick = { onTabClicked(navItem.currentTab) },
-                label = { Text(text = navItem.title) },
-                icon = {
-                    Icon(
-                        painter = navItem.icon,
-                        contentDescription = null
-                    )
+                label = {
+                        Text(text = navItem.title)
                 },
+                icon = {
+                    if(newNotification) {
+                        if(index == navigationContentList.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.Top,
 
+                                ) {
+                                    Icon(
+                                        painter = navItem.icon,
+                                        contentDescription = navItem.title,
+//                                        Modifier.alpha(0.7f)
+                                    )
+                                    Text(
+                                        text = numberOfNotifications.toString(),
+                                        color = Color.Red,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp,
+                                        modifier = Modifier
+//                                            .align(Alignment.TopEnd)
+                                    )
+                                }
+
+                            }
+                        } else {
+                            Icon(
+                                painter = navItem.icon,
+                                contentDescription = navItem.title
+                            )
+                        }
+                    }
+                }
             )
         }
+//        for(navItem in navigationContentList) {
+//            NavigationBarItem(
+//                selected = navItem.currentTab == currentTab,
+//                onClick = { onTabClicked(navItem.currentTab) },
+//                label = { Text(text = navItem.title) },
+//                icon = {
+//                    if(newNotification) {
+//                        Box {
+//                            Icon(
+//                                painter = navItem.icon,
+//                                contentDescription = null
+//                            )
+//                            Text(text = numberOfNotifications.toString())
+//                        }
+//                    }
+//
+//                },
+//
+//            )
+//        }
     }
 }
 
@@ -750,6 +788,45 @@ fun RegisterUserAlert(
             Text(text = "Sign in in order to show contact")
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BottomNavigationBarPreview() {
+    val navigationContentList = listOf<NavigationContent>(
+        NavigationContent(
+            title = "Listings",
+            icon = painterResource(id = R.drawable.units_listing),
+            currentTab = BottomTab.UNITS
+        ),
+        NavigationContent(
+            title = "My Units",
+            icon = painterResource(id = R.drawable.unit),
+            currentTab = BottomTab.MY_UNITS,
+
+            ),
+        NavigationContent(
+            title = "Notifications",
+            icon = painterResource(id = R.drawable.notifications),
+            currentTab = BottomTab.NOTIFICATIONS,
+
+            ),
+        NavigationContent(
+            title = "Profile",
+            icon = painterResource(id = R.drawable.account_tab),
+            currentTab = BottomTab.ACCOUNT
+        ),
+
+        )
+    PropertyManagementTheme {
+        BottomNavigationBar(
+            newNotification = true,
+            numberOfNotifications = 3,
+            navigationContentList = navigationContentList,
+            currentTab = BottomTab.UNITS,
+            onTabClicked = {}
+        )
+    }
 }
 
 @Preview(showBackground = true)

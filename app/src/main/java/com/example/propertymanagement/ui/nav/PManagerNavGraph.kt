@@ -15,7 +15,7 @@ import com.example.propertymanagement.ui.views.MyUnitScreen
 import com.example.propertymanagement.ui.views.PropertyScreen
 import com.example.propertymanagement.ui.views.RegistrationScreen
 import com.example.propertymanagement.ui.views.RegistrationScreenDestination
-import com.example.propertymanagement.ui.views.UnitDetails
+import com.example.propertymanagement.ui.views.UnitDetailsScreen
 import com.example.propertymanagement.ui.views.UnitDetailsScreenDestination
 
 @Composable
@@ -75,7 +75,7 @@ fun PManagerNavHost(
                 }
             )
         ) {
-            UnitDetails(onBackButtonPressed = { navController.navigateUp() })
+            UnitDetailsScreen(onBackButtonPressed = { navController.navigateUp() })
         }
     }
 }

@@ -1,13 +1,12 @@
 package com.example.propertymanagement.ui.views
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,20 +14,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,27 +46,24 @@ import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 fun AccountScreen(
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Card(
+        shape = RoundedCornerShape(0.dp),
         modifier = modifier
-            .padding(
-                start = 10.dp,
-                end = 10.dp
-            )
-            .fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Account Details",
-            fontWeight = FontWeight.Bold,
-            fontSize = 26.sp,
-            modifier = Modifier
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Divider()
-        Spacer(modifier = Modifier.height(10.dp))
-        ProfileSection()
-        Spacer(modifier = Modifier.height(20.dp))
-        AccountOptions()
+        Column(
+            modifier = modifier
+                .padding(
+//                start = 10.dp,
+//                end = 10.dp
+                )
+                .fillMaxSize()
+        ) {
+            AccountTopBar()
+            Spacer(modifier = Modifier.height(20.dp))
+            ProfileSection()
+            Spacer(modifier = Modifier.height(20.dp))
+            AccountOptions()
+        }
     }
 
 }
@@ -73,6 +73,7 @@ fun ProfileSection(
     modifier: Modifier = Modifier
 ) {
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -84,50 +85,10 @@ fun ProfileSection(
                 .size(80.dp)
                 .clip(CircleShape)
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Mary Jane",
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.width(3.dp))
-            Divider(
-                modifier = Modifier
-                    .width(2.dp)
-                    .height(20.dp)
-            )
-            Spacer(modifier = Modifier.width(3.dp))
-            Text(
-                text = "Edit Profile",
-                fontWeight = FontWeight.Bold,
-                style = TextStyle(
-                    color = Color.Blue
-                ),
-                modifier = Modifier
-                    .clickable {  }
-            )
-        }
         Text(
-            text = "Log Out",
-            fontWeight = FontWeight.Bold,
-            style = TextStyle(
-                color = Color.Red
-            ),
-            modifier = Modifier
-                .padding(
-                    top = 5.dp
-                )
-                .clickable { }
+            text = "Mary Jane",
+            fontWeight = FontWeight.Bold
         )
-        Spacer(modifier = Modifier.height(10.dp))
-        Divider(
-            thickness = 2.dp,
-            color = Color.Black
-        )
-
-
-
     }
 }
 
@@ -135,130 +96,137 @@ fun ProfileSection(
 fun AccountOptions(
     modifier: Modifier = Modifier
 ) {
-    Column {
-        InvoicesCard()
-        Spacer(modifier = Modifier.height(20.dp))
-        PaymentsCard()
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(
+            topStart = 20.dp,
+            topEnd = 20.dp
+        ),
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(ScrollState(0))
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.notifications),
+                menuTitle = "Notifications"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.edit),
+                menuTitle = "Edit Profile"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.lock),
+                menuTitle = "Change Password"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.terms_and_conditions),
+                menuTitle = "Terms & Conditions"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.privacy_policy),
+                menuTitle = "Privacy Policy"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.delete),
+                menuTitle = "Delete Account"
+            )
+            ProfileMenuItem(
+                painter = painterResource(id = R.drawable.logout),
+                menuTitle = "Logout"
+            )
+        }
     }
 }
 
 @Composable
-fun InvoicesCard(
+fun ProfileMenuItem(
+    painter: Painter,
+    menuTitle: String,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ElevatedCard(
+
         modifier = Modifier
             .fillMaxWidth()
-            .size(80.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .padding(5.dp)
-                .fillMaxWidth()
-        ) {
-            Box {
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.invoice_tab),
-                        contentDescription = "Check your invoices",
-                        modifier = Modifier
-                            .size(80.dp)
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                    ) {
-                        Text(
-                            text = "Invoice",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Check all your invoices"
-                        )
-                    }
-
-                }
-
-            }
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = "Check",
-                modifier = Modifier
-
+            .padding(
+                bottom = 16.dp
             )
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Icon(
+                    painter = painter,
+                    contentDescription = menuTitle
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = menuTitle)
+            }
         }
-
     }
 }
 
 @Composable
-fun PaymentsCard(
+fun AccountTopBar(
     modifier: Modifier = Modifier
 ) {
-    Card(
+    Surface(
+        shadowElevation = 9.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .size(80.dp)
     ) {
         Row(
+            //        horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
-                .padding(5.dp)
                 .fillMaxWidth()
+                .padding(
+                    start = 10.dp,
+                    end = 10.dp
+                )
         ) {
-            Box {
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.payments_tab),
-                        contentDescription = "Check your payments",
-                        modifier = Modifier
-                            .size(80.dp)
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                    ) {
-                        Text(
-                            text = "Payments",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Check all your payments"
-                        )
-                    }
-
-                }
-
-            }
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = "Check",
+            Image(
+                painter = painterResource(id = R.drawable.prop_ease_3),
+                contentDescription = null,
                 modifier = Modifier
-
+                    .width(90.dp)
+                    .height(60.dp)
+            )
+            Text(
+                text = "PropEase",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "Account",
+                fontWeight = FontWeight.Bold
             )
         }
-
     }
 }
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun AccountPageAppBar(
-//    modifier: Modifier = Modifier
-//) {
-//    TopAppBar(title = {
-//        Text(
-//            text = "Account",
-//            fontWeight = FontWeight.Bold
-//        )
-//    })
-//}
-
+@Preview(showBackground = true)
+@Composable
+fun ProfileMenuItemPreview() {
+    PropertyManagementTheme {
+        ProfileMenuItem(
+            painter = painterResource(id = R.drawable.edit),
+            menuTitle = "Edit Profile"
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

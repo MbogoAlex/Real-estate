@@ -15,8 +15,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,30 +33,43 @@ import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 fun InvoiceScreen(
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-    ) {
-        InvoiceHeader()
-        Column() {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                InvoiceCardDetails(
-                    modifier = Modifier
-                        .padding(20.dp)
-                )
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = { /*TODO*/ }) {
+                Text("Pay")
             }
-
-
         }
-        Spacer(modifier = Modifier.height(150.dp))
-        PaymentButton(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-        )
+    ) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+            Column() {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = 30.dp,
+                            top = 10.dp,
+                            end = 30.dp,
+                            bottom = 30.dp,
+                        )
+                ) {
+                    InvoiceCardDetails(
+                        modifier = Modifier
+                            .padding(20.dp)
+                    )
+                }
+
+
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            PaymentButton(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
     }
 }
 
@@ -153,38 +168,6 @@ fun InvoiceCardDetails(
 }
 
 @Composable
-fun InvoiceHeader(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(10.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Home,
-            contentDescription = "Home icon"
-        )
-        Text(
-            text = "PropEase",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-
-            )
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
-            contentDescription = null
-        )
-        Text(
-            text = "Invoice",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-
-            )
-    }
-}
-
-@Composable
 fun PaymentButton(modifier: Modifier = Modifier) {
     Button(
         onClick = { /*TODO*/ },
@@ -192,7 +175,7 @@ fun PaymentButton(modifier: Modifier = Modifier) {
             .widthIn(250.dp)
 
     ) {
-        Text(text = "Pay Invoice")
+        Text(text = "Print Invoice")
     }
 }
 

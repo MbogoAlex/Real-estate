@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.propertymanagement.ui.PManagerApp
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
+import com.example.propertymanagement.ui.views.AvailabilitySelection
+import com.example.propertymanagement.ui.views.CreateNewPropertyScreen
 import com.example.propertymanagement.ui.views.PropertyScreen
 import com.example.propertymanagement.ui.views.UnitsScreen
 
@@ -25,7 +27,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PManagerApp()
+//                    PManagerApp()
+                    CreateNewPropertyScreen()
                 }
             }
         }

@@ -32,7 +32,6 @@ fun PaymentsScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
-        PaymentsScreenHeader()
         LazyColumn(
 
         ) {
@@ -83,39 +82,6 @@ fun PaymentItem(
         Divider()
     }
 }
-
-@Composable
-fun PaymentsScreenHeader(
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(10.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.Home,
-            contentDescription = "Home icon"
-        )
-        Text(
-            text = "PropEase",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-
-            )
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
-            contentDescription = null
-        )
-        Text(
-            text = "Payments",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-
-            )
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun PaymentsScreenPreview() {
