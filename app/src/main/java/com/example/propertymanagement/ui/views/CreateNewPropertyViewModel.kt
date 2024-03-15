@@ -1,68 +1,106 @@
 package com.example.propertymanagement.ui.views
 
+import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.util.Date
 
 data class FeaturesInputFieldsUiState (
-    val inputFields: List<FeaturesInputField> = mutableListOf()
+    var features: List<String> = mutableListOf()
+)
+
+data class GeneralPropertyDataUiState (
+    val generalPropertyDetails: GeneralPropertyDetails = GeneralPropertyDetails(
+        title = "",
+        description = "",
+        date = "",
+        county = "",
+        address  = "",
+        latitude = "",
+        longitude = "",
+        price = ""
+    ),
+    val showCreateButton: Boolean = false
+)
+
+data class GeneralPropertyDetails(
+    val title: String = "",
+    val description: String = "",
+    val date: String = "",
+    val county: String = "",
+    val address: String = "",
+    val latitude: String = "",
+    val longitude: String = "",
+    val price: String = ""
 )
 class CreateNewPropertyViewModel: ViewModel() {
     private val _featuresInputFieldsUiState = MutableStateFlow(value = FeaturesInputFieldsUiState())
     val featuresInputFieldsUiState: StateFlow<FeaturesInputFieldsUiState> = _featuresInputFieldsUiState.asStateFlow()
 
-    fun initialField() {
-        var inputFields = mutableListOf<FeaturesInputField>()
-        var initialField = FeaturesInputField(
-            label = "",
-            value = "",
-            keyboardType = KeyboardType.Text,
-            onValueChanged = {}
-        )
-        inputFields.add(initialField)
-        _featuresInputFieldsUiState.update {
+    private val _generalPropertyDataUiState = MutableStateFlow(value = GeneralPropertyDataUiState())
+    val generalPropertyDataUiState: StateFlow<GeneralPropertyDataUiState> = _generalPropertyDataUiState.asStateFlow()
+
+    val generalPropertyDetails by mutableStateOf(GeneralPropertyDetails())
+
+
+    var features by mutableStateOf(mutableStateListOf(""))
+
+
+    fun updateGeneralUiState() {
+        _generalPropertyDataUiState.update {
             it.copy(
-                inputFields = inputFields
+                generalPropertyDetails = generalPropertyDetails,
+                showCreateButton = showCreatePropertyButton()
             )
         }
     }
 
     init {
-        initialField()
+        _featuresInputFieldsUiState.value.features = features
+    }
+
+
+
+    fun showCreatePropertyButton(): Boolean {
+        return !(
+                generalPropertyDetails.address.isEmpty() || generalPropertyDetails.title.isEmpty() ||
+                        generalPropertyDetails.description.isEmpty() || generalPropertyDetails.county.isEmpty() ||
+                        generalPropertyDetails.price.isEmpty()
+                )
     }
     fun addNewField() {
-        var currentInputFields = _featuresInputFieldsUiState.value.inputFields
-        var inputFields = mutableListOf<FeaturesInputField>()
-        val newInputField = FeaturesInputField(
-            label = "",
-            value = "",
-            keyboardType = KeyboardType.Text,
-            onValueChanged = {}
-        )
 
-
-
-        inputFields.addAll(currentInputFields)
-        inputFields.add(newInputField)
-
+        features.add("")
         _featuresInputFieldsUiState.update {
             it.copy(
-                inputFields = inputFields
+                features = features
+            )
+        }
+
+    }
+
+    fun updateFeaturesFieldUiState() {
+        _featuresInputFieldsUiState.update {
+            it.copy(
+                features = features
             )
         }
     }
 
     fun removeFeatureField(index: Int) {
-        var inputFields = _featuresInputFieldsUiState.value.inputFields
-        var fields = mutableListOf<FeaturesInputField>()
-        fields.addAll(inputFields)
-        fields.removeAt(index)
+        features.removeAt(index)
         _featuresInputFieldsUiState.update {
             it.copy(
-                inputFields = fields
+                features = features
             )
         }
     }

@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.example.propertymanagement.SFServices.PManagerSFRepository
 import com.example.propertymanagement.container.AppContainer
 import com.example.propertymanagement.container.DefaultContainer
+import com.example.propertymanagement.container.FormDataContainer
 
 private const val SF_NAME = "PManagerSF"
 private val Context.datastore: DataStore<Preferences> by preferencesDataStore(
@@ -16,10 +17,12 @@ private val Context.datastore: DataStore<Preferences> by preferencesDataStore(
 
 class PManagerApplication: Application() {
     lateinit var container: AppContainer
+    lateinit var formDataContainer: AppContainer
     lateinit var pManagerSFRepository: PManagerSFRepository
     override fun onCreate() {
         super.onCreate()
         container = DefaultContainer(this)
+        formDataContainer = FormDataContainer(this)
         pManagerSFRepository = PManagerSFRepository(datastore)
     }
 }

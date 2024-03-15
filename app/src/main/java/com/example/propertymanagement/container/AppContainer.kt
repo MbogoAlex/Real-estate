@@ -8,6 +8,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 
 interface AppContainer {
@@ -29,4 +30,20 @@ class DefaultContainer(context: Context): AppContainer {
         NetworkPManagerApiRepository(retrofitService)
     }
 
+}
+
+class FormDataContainer(context: Context): AppContainer {
+    private val baseUrl = "http://172.105.90.112:8080/pManager/"
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    private val retrofitService: PMangerApiService by lazy {
+        retrofit.create(PMangerApiService::class.java)
+    }
+
+    override val pMangerApiRepository: PMangerApiRepository by lazy {
+        NetworkPManagerApiRepository(retrofitService)
+    }
 }

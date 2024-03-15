@@ -2,6 +2,9 @@ package com.example.propertymanagement.ui.views
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -158,8 +162,8 @@ fun PropertyTypeSelection(
                 expanded = !expanded
             }
             .border(
-                width = 2.dp,
-                color = Color.LightGray,
+                width = 1.dp,
+                color = Color.Black,
                 shape = RoundedCornerShape(10.dp)
             )
     ) {
@@ -228,14 +232,19 @@ fun NumberOfRoomsSelection(
                 expanded = !expanded
             }
             .border(
-                width = 2.dp,
-                color = Color.LightGray,
+                width = 1.dp,
+                color = Color.Black,
                 shape = RoundedCornerShape(10.dp)
             )
     ) {
         Column(
             modifier = Modifier
-
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
 
         ) {
             Row(
@@ -291,7 +300,7 @@ fun InputField(
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
-        value = "",
+        value = value,
         label = {
                 Text(text = label)
         },
@@ -353,6 +362,9 @@ fun AvailabilitySelection(
                         selected = selected == option,
                         onClick = {
                             selected = option
+                            if(option == "Pick date") {
+                                openDialog = true
+                            }
                         }
                     )
                     Text(text = option)
@@ -400,9 +412,6 @@ fun AvailabilitySelection(
             }
 
         }
-
-
-
     }
 }
 
@@ -488,27 +497,35 @@ fun PropertyFeatures(
             .fillMaxWidth()
 
     ) {
-        uiState.inputFields.forEachIndexed { index, it ->
-            InputField(
-                keyboardType = it.keyboardType,
-                label = "Feature ${it.label} ${index + 1}",
-                value = it.value,
-                onValueChanged = it.onValueChanged,
+        uiState.features.forEachIndexed { index, it ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-            )
-            IconButton(
-                onClick = {
-                    viewModel.removeFeatureField(index = index)
-                },
-                modifier = Modifier
-                    .align(Alignment.End)
-            )
-            {
-                Icon(
-                    painter = painterResource(id = R.drawable.remove),
-                    contentDescription = "Remove field"
+            ) {
+                InputField(
+                    keyboardType = KeyboardType.Text,
+                    label = "Feature ${index + 1}",
+                    value = it,
+                    onValueChanged = {feature ->
+                                     viewModel.features[index] = feature
+                        viewModel.updateFeaturesFieldUiState();
+                    },
+                    modifier = Modifier
+                        .weight(2f)
                 )
+                IconButton(
+                    onClick = {
+                        viewModel.removeFeatureField(index = index)
+                    },
+                    modifier = Modifier
+                )
+                {
+                    Icon(
+                        painter = painterResource(id = R.drawable.cancel),
+                        contentDescription = "Remove field"
+                    )
+                }
             }
 
         }
@@ -531,7 +548,7 @@ fun PropertyFeatures(
 data class FeaturesInputField(
     val keyboardType: KeyboardType,
     val label: String,
-    val value: String,
+    var value: String,
     val onValueChanged: (newValue: String) -> Unit,
 )
 
