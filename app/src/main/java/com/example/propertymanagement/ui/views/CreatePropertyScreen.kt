@@ -1,5 +1,11 @@
 package com.example.propertymanagement.ui.views
 
+import android.net.Uri
+import android.os.Build
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -8,6 +14,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,13 +23,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -45,10 +61,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalMapOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -56,11 +76,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.example.propertymanagement.R
 import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.example.propertymanagement.utils.convertMillisToDate
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CreateNewPropertyScreen(
     modifier: Modifier = Modifier
@@ -69,13 +94,41 @@ fun CreateNewPropertyScreen(
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     Column(
         modifier = modifier
+            .fillMaxSize()
+
     ) {
         UploadPropertyTopBar()
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 10.dp,
+                    end = 10.dp
+                )
+        ) {
+            Text(
+                text = "Advertise your property",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            TextButton(onClick = { /*TODO*/ }) {
+                Row {
+                    Text(text = "Preview")
+                    Icon(
+                        painter = painterResource(id = R.drawable.preview),
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp)
-                .verticalScroll(ScrollState(0))
+                .verticalScroll(rememberScrollState())
         ) {
             Card() {
                 Column(
@@ -84,11 +137,13 @@ fun CreateNewPropertyScreen(
                 ) {
                     Row {
                         PropertyTypeSelection(
+                            viewModel = viewModel,
                             modifier = Modifier
                                 .weight(1f)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         NumberOfRoomsSelection(
+                            viewModel = viewModel,
                             modifier = Modifier
                                 .weight(1f)
                         )
@@ -102,6 +157,7 @@ fun CreateNewPropertyScreen(
                                              viewModel.generalPropertyDetails.copy(
                                                  title = it
                                              )
+                            viewModel.updateGeneralUiState()
                         },
                         keyboardType = KeyboardType.Text,
                         maxLines = 2,
@@ -117,13 +173,16 @@ fun CreateNewPropertyScreen(
                                              viewModel.generalPropertyDetails.copy(
                                                  description = it
                                              )
+                            viewModel.updateGeneralUiState()
                         },
                         keyboardType = KeyboardType.Text,
-                        maxLines = 3,
+                        maxLines = 5,
                         modifier = Modifier
                             .fillMaxWidth()
                     )
-                    AvailabilitySelection()
+                    AvailabilitySelection(
+                        viewModel = viewModel
+                    )
                     LocationSelection(
                         addressValue = uiState.generalPropertyDetails.address,
                         countyValue = uiState.generalPropertyDetails.county,
@@ -134,6 +193,7 @@ fun CreateNewPropertyScreen(
                                                     viewModel.generalPropertyDetails.copy(
                                                         address = it
                                                     )
+                            viewModel.updateGeneralUiState()
                         },
                         onLatitudeValueChanged = {},
                         onLongitudeValueChanged = {},
@@ -142,6 +202,7 @@ fun CreateNewPropertyScreen(
                                 viewModel.generalPropertyDetails.copy(
                                     county = it
                                 )
+                            viewModel.updateGeneralUiState()
                         }
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -151,8 +212,14 @@ fun CreateNewPropertyScreen(
                     )
                     InputField(
                         label = "Price",
-                        value = "",
-                        onValueChanged = {},
+                        value = uiState.generalPropertyDetails.price,
+                        onValueChanged = {
+                                         viewModel.generalPropertyDetails =
+                                             viewModel.generalPropertyDetails.copy(
+                                                 price = it
+                                             )
+                            viewModel.updateGeneralUiState()
+                        },
                         keyboardType = KeyboardType.Number,
                         maxLines = 1,
                         modifier = Modifier
@@ -163,8 +230,18 @@ fun CreateNewPropertyScreen(
                         text = "Add features",
                         fontWeight = FontWeight.Bold
                     )
-                    PropertyFeatures()
-
+                    PropertyFeatures(
+                        viewModel = viewModel
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Upload photos",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    ImagesUpload(
+                        viewModel = viewModel
+                    )
                 }
             }
         }
@@ -173,8 +250,10 @@ fun CreateNewPropertyScreen(
 
 @Composable
 fun PropertyTypeSelection(
+    viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     val propertyTypes = listOf<String>("Rental", "Airbnb")
     var expanded by remember {
         mutableStateOf(false)
@@ -225,10 +304,15 @@ fun PropertyTypeSelection(
             ) {
                 for(type in propertyTypes) {
                     DropdownMenuItem(
-                        text = { Text(text = type) },
+                        text = { Text(text = uiState.generalPropertyDetails.type) },
                         onClick = {
                             selectedType = type
                             expanded = false
+                            viewModel.generalPropertyDetails =
+                                viewModel.generalPropertyDetails.copy(
+                                    type = type
+                                )
+                            viewModel.updateGeneralUiState()
                         }
                     )
                     Divider()
@@ -243,6 +327,7 @@ fun PropertyTypeSelection(
 
 @Composable
 fun NumberOfRoomsSelection(
+    viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
     val numOfRooms = listOf<String>("Bedsitter", "1", "2", "3", "4", "5")
@@ -310,6 +395,11 @@ fun NumberOfRoomsSelection(
                         onClick = {
                             selectedType = num
                             expanded = false
+                            viewModel.generalPropertyDetails =
+                                viewModel.generalPropertyDetails.copy(
+                                    rooms = num
+                                )
+                            viewModel.updateGeneralUiState()
                         }
                     )
                     Divider()
@@ -347,11 +437,14 @@ fun InputField(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AvailabilitySelection(
+    viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     val options = listOf<String>("Now", "Pick date")
     var selected by remember {
         mutableStateOf(options[0])
@@ -373,6 +466,10 @@ fun AvailabilitySelection(
     val selectedDate = state.selectedDateMillis?.let { 
         convertMillisToDate(it)
     }
+    val now = remember {
+        LocalDate.now()
+    }
+    val formattedDate = now.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -405,8 +502,11 @@ fun AvailabilitySelection(
         }
 
         if(selected == "Now") {
-
-            Text(text = "Available from: NOW")
+            Text(text = "Available from: ${uiState.generalPropertyDetails.date}")
+            viewModel.generalPropertyDetails = viewModel.generalPropertyDetails.copy(
+                date = formattedDate
+            )
+            viewModel.updateGeneralUiState()
         } else {
             if(openDialog) {
                 DatePickerDialog(
@@ -415,6 +515,11 @@ fun AvailabilitySelection(
                                     TextButton(onClick = {
                                         openDialog = false
                                         availableDate = selectedDate!!
+                                        viewModel.generalPropertyDetails =
+                                            viewModel.generalPropertyDetails.copy(
+                                                date = availableDate
+                                            )
+                                        viewModel.updateGeneralUiState()
                                     }) {
                                         Text(text = "OK")
                                     }
@@ -432,7 +537,7 @@ fun AvailabilitySelection(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Available from: $availableDate")
+                Text(text = "Available from: ${uiState.generalPropertyDetails.date}")
                 if(availableDate.isNotEmpty()) {
                     TextButton(onClick = {
                         openDialog = true
@@ -498,9 +603,9 @@ fun LocationSelection(
 
 @Composable
 fun PropertyFeatures(
+    viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
-    var viewModel: CreateNewPropertyViewModel = viewModel()
     val uiState by viewModel.featuresInputFieldsUiState.collectAsState()
 
     Column(
@@ -596,6 +701,67 @@ fun UploadPropertyTopBar(
     }
 }
 
+@Composable
+fun ImagesUpload(
+    viewModel: CreateNewPropertyViewModel,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var imageUrl by remember {
+        mutableStateOf<Uri?>(null)
+    }
+    var images by remember {
+        mutableStateOf<List<Uri>>(listOf()) // Initialize images list as empty
+    }
+    val cacheDir = context.cacheDir
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let {
+                imageUrl = it
+                images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
+                viewModel.addImages(imageUrl!!)
+            }
+        }
+    )
+
+    Column {
+        TextButton(onClick = { galleryLauncher.launch("image/*") }) {
+            Row {
+                Text(text = "Add images")
+                Icon(
+                    painter = painterResource(id = R.drawable.file_upload),
+                    contentDescription = "Add image"
+                )
+            }
+        }
+        LazyRow() {
+            items(images) { uri ->
+                uri?.let {
+                    Card(
+                        modifier = Modifier
+                            .height(100.dp)
+                    ) {
+                        Image(
+                            painter = rememberImagePainter(uri),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .padding(
+                                    top = 5.dp,
+                                    end = 3.dp,
+                                    bottom = 5.dp
+                                )
+                                .size(100.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 data class FeaturesInputField(
     val keyboardType: KeyboardType,
     val label: String,
@@ -606,8 +772,11 @@ data class FeaturesInputField(
 @Preview(showBackground = true)
 @Composable
 fun PropertyFeaturesPreview() {
+    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     PropertyManagementTheme {
-        PropertyFeatures()
+        PropertyFeatures(
+            viewModel = viewModel
+        )
     }
 }
 
@@ -632,11 +801,15 @@ fun LocationSelectionSelectionPreview() {
 
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun AvailabilitySelectionPreview() {
+    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     PropertyManagementTheme {
-        AvailabilitySelection()
+        AvailabilitySelection(
+            viewModel = viewModel
+        )
     }
 }
 
@@ -657,11 +830,15 @@ fun InputFieldPreview() {
 @Preview(showBackground = true)
 @Composable
 fun PropertyTypeSelectionPreview() {
+    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     PropertyManagementTheme {
-        PropertyTypeSelection()
+        PropertyTypeSelection(
+            viewModel = viewModel
+        )
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun CreateNewPropertyScreenPreview() {

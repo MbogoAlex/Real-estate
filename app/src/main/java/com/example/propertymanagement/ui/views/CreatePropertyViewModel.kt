@@ -1,10 +1,14 @@
 package com.example.propertymanagement.ui.views
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.propertymanagement.SFServices.PManagerSFRepository
+import com.example.propertymanagement.apiServices.networkRepository.NetworkPManagerApiRepository
+import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +20,8 @@ data class FeaturesInputFieldsUiState (
 
 data class GeneralPropertyDataUiState (
     val generalPropertyDetails: GeneralPropertyDetails = GeneralPropertyDetails(
+        type = "",
+        rooms = "",
         title = "",
         description = "",
         date = "",
@@ -23,12 +29,17 @@ data class GeneralPropertyDataUiState (
         address  = "",
         latitude = "",
         longitude = "",
-        price = ""
+        price = "",
+        features = mutableListOf(),
+        images = mutableListOf(),
     ),
-    val showCreateButton: Boolean = false
+    val showCreateButton: Boolean = false,
+    val showPreview:  Boolean = false
 )
 
 data class GeneralPropertyDetails(
+    val type: String = "",
+    val rooms: String = "",
     val title: String = "",
     val description: String = "",
     val date: String = "",
@@ -36,9 +47,14 @@ data class GeneralPropertyDetails(
     val address: String = "",
     val latitude: String = "",
     val longitude: String = "",
-    val price: String = ""
+    val price: String = "",
+    val features: List<String> = mutableListOf(),
+    val images: List<Uri> = mutableListOf()
 )
-class CreateNewPropertyViewModel: ViewModel() {
+class CreateNewPropertyViewModel(
+    private val pManagerApiRepository: PMangerApiRepository,
+    private val pManagerSFRepository: PManagerSFRepository,
+): ViewModel() {
     private val _featuresInputFieldsUiState = MutableStateFlow(value = FeaturesInputFieldsUiState())
     val featuresInputFieldsUiState: StateFlow<FeaturesInputFieldsUiState> = _featuresInputFieldsUiState.asStateFlow()
 
@@ -49,6 +65,8 @@ class CreateNewPropertyViewModel: ViewModel() {
 
 
     var features by mutableStateOf(mutableStateListOf(""))
+
+    var images by mutableStateOf(mutableStateListOf<Uri>())
 
 
     fun updateGeneralUiState() {
@@ -90,6 +108,13 @@ class CreateNewPropertyViewModel: ViewModel() {
                 features = features
             )
         }
+        _generalPropertyDataUiState.update {
+            it.copy(
+                generalPropertyDetails = generalPropertyDetails.copy(
+                    features = features
+                )
+            )
+        }
     }
 
     fun removeFeatureField(index: Int) {
@@ -100,4 +125,16 @@ class CreateNewPropertyViewModel: ViewModel() {
             )
         }
     }
+
+    fun addImages(image: Uri) {
+        images.add(image)
+        _generalPropertyDataUiState.update {
+            it.copy(
+                generalPropertyDetails = generalPropertyDetails.copy(
+                    images = images
+                )
+            )
+        }
+    }
+
 }

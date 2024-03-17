@@ -23,7 +23,7 @@ interface PMangerApiService {
 
     @Multipart
     @POST("api/property/create")
-    suspend fun UploadPropertyDetails(
+    suspend fun uploadPropertyDetails(
         @PartMap() partMap: MutableMap<String, RequestBody>,
         @Part file: MultipartBody.Part
     ): Response<PropertyUploadResponse>

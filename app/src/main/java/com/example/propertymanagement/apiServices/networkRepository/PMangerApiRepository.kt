@@ -25,5 +25,5 @@ class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiSer
     override suspend fun CreateProperty(
         partMap: MutableMap<String, RequestBody>,
         image: MultipartBody.Part
-    ): Response<PropertyUploadResponse> = pManagerApiService.UploadPropertyDetails(partMap, image)
+    ): Response<PropertyUploadResponse> = pManagerApiService.uploadPropertyDetails(partMap, image)
 }
