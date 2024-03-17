@@ -92,160 +92,181 @@ fun CreateNewPropertyScreen(
 ) {
     val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-
-    ) {
-        UploadPropertyTopBar()
-        Spacer(modifier = Modifier.height(5.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = 10.dp,
-                    end = 10.dp
-                )
-        ) {
-            Text(
-                text = "Advertise your property",
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            TextButton(onClick = { /*TODO*/ }) {
-                Row {
-                    Text(text = "Preview")
-                    Icon(
-                        painter = painterResource(id = R.drawable.preview),
-                        contentDescription = null
-                    )
-                }
+    val imagesUiState by viewModel.imagesUiState.collectAsState()
+    val featuresInputFieldsUiState by viewModel.featuresInputFieldsUiState.collectAsState()
+    var showPreview by rememberSaveable {
+        mutableStateOf(false)
+    }
+    if(showPreview) {
+        CreatePropertyPreviewScreen(
+            generalPropertyDetails = uiState.generalPropertyDetails,
+            featuresInputFieldsUiState = featuresInputFieldsUiState,
+            imagesUiState = imagesUiState,
+            onBackButtonClicked = {
+                showPreview = false
             }
-        }
-        Spacer(modifier = Modifier.height(5.dp))
+        )
+    } else {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
-                .padding(10.dp)
-                .verticalScroll(rememberScrollState())
+
         ) {
-            Card() {
-                Column(
-                    modifier = Modifier
-                        .padding(20.dp)
-                ) {
+
+            UploadPropertyTopBar()
+            Spacer(modifier = Modifier.height(5.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = 10.dp,
+                        end = 10.dp
+                    )
+            ) {
+                Text(
+                    text = "Advertise your property",
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(onClick = {
+                    showPreview = true
+                }) {
                     Row {
-                        PropertyTypeSelection(
-                            viewModel = viewModel,
-                            modifier = Modifier
-                                .weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        NumberOfRoomsSelection(
-                            viewModel = viewModel,
-                            modifier = Modifier
-                                .weight(1f)
+                        Text(text = "Preview")
+                        Icon(
+                            painter = painterResource(id = R.drawable.preview),
+                            contentDescription = null
                         )
                     }
-                    //title field
-                    InputField(
-                        label = "Title",
-                        value = uiState.generalPropertyDetails.title,
-                        onValueChanged = {
-                                         viewModel.generalPropertyDetails =
-                                             viewModel.generalPropertyDetails.copy(
-                                                 title = it
-                                             )
-                            viewModel.updateGeneralUiState()
-                        },
-                        keyboardType = KeyboardType.Text,
-                        maxLines = 2,
+                }
+            }
+            Spacer(modifier = Modifier.height(5.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Card() {
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    //description field
-                    InputField(
-                        label = "Description",
-                        value = uiState.generalPropertyDetails.description,
-                        onValueChanged = {
-                                         viewModel.generalPropertyDetails =
-                                             viewModel.generalPropertyDetails.copy(
-                                                 description = it
-                                             )
-                            viewModel.updateGeneralUiState()
-                        },
-                        keyboardType = KeyboardType.Text,
-                        maxLines = 5,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    AvailabilitySelection(
-                        viewModel = viewModel
-                    )
-                    LocationSelection(
-                        addressValue = uiState.generalPropertyDetails.address,
-                        countyValue = uiState.generalPropertyDetails.county,
-                        latitudeValue = "",
-                        longitudeValue = "",
-                        onAddressValueChanged = {
-                                                viewModel.generalPropertyDetails =
-                                                    viewModel.generalPropertyDetails.copy(
-                                                        address = it
-                                                    )
-                            viewModel.updateGeneralUiState()
-                        },
-                        onLatitudeValueChanged = {},
-                        onLongitudeValueChanged = {},
-                        onCountyValueChanged = {
-                            viewModel.generalPropertyDetails =
-                                viewModel.generalPropertyDetails.copy(
-                                    county = it
-                                )
-                            viewModel.updateGeneralUiState()
+                            .padding(20.dp)
+                    ) {
+                        Row {
+                            PropertyTypeSelection(
+                                viewModel = viewModel,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            NumberOfRoomsSelection(
+                                viewModel = viewModel,
+                                modifier = Modifier
+                                    .weight(1f)
+                            )
                         }
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Price",
-                        fontWeight = FontWeight.Bold
-                    )
-                    InputField(
-                        label = "Price",
-                        value = uiState.generalPropertyDetails.price,
-                        onValueChanged = {
-                                         viewModel.generalPropertyDetails =
-                                             viewModel.generalPropertyDetails.copy(
-                                                 price = it
-                                             )
-                            viewModel.updateGeneralUiState()
-                        },
-                        keyboardType = KeyboardType.Number,
-                        maxLines = 1,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Add features",
-                        fontWeight = FontWeight.Bold
-                    )
-                    PropertyFeatures(
-                        viewModel = viewModel
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Upload photos",
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    ImagesUpload(
-                        viewModel = viewModel
-                    )
+                        //title field
+                        InputField(
+                            label = "Title",
+                            value = uiState.generalPropertyDetails.title,
+                            onValueChanged = {
+                                viewModel.generalPropertyDetails =
+                                    viewModel.generalPropertyDetails.copy(
+                                        title = it
+                                    )
+                                viewModel.updateGeneralUiState()
+                            },
+                            keyboardType = KeyboardType.Text,
+                            maxLines = 2,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        //description field
+                        InputField(
+                            label = "Description",
+                            value = uiState.generalPropertyDetails.description,
+                            onValueChanged = {
+                                viewModel.generalPropertyDetails =
+                                    viewModel.generalPropertyDetails.copy(
+                                        description = it
+                                    )
+                                viewModel.updateGeneralUiState()
+                            },
+                            keyboardType = KeyboardType.Text,
+                            maxLines = 5,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        AvailabilitySelection(
+                            viewModel = viewModel
+                        )
+                        LocationSelection(
+                            addressValue = uiState.generalPropertyDetails.address,
+                            countyValue = uiState.generalPropertyDetails.county,
+                            latitudeValue = "",
+                            longitudeValue = "",
+                            onAddressValueChanged = {
+                                viewModel.generalPropertyDetails =
+                                    viewModel.generalPropertyDetails.copy(
+                                        address = it
+                                    )
+                                viewModel.updateGeneralUiState()
+                            },
+                            onLatitudeValueChanged = {},
+                            onLongitudeValueChanged = {},
+                            onCountyValueChanged = {
+                                viewModel.generalPropertyDetails =
+                                    viewModel.generalPropertyDetails.copy(
+                                        county = it
+                                    )
+                                viewModel.updateGeneralUiState()
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Price",
+                            fontWeight = FontWeight.Bold
+                        )
+                        InputField(
+                            label = "Price",
+                            value = uiState.generalPropertyDetails.price,
+                            onValueChanged = {
+                                viewModel.generalPropertyDetails =
+                                    viewModel.generalPropertyDetails.copy(
+                                        price = it
+                                    )
+                                viewModel.updateGeneralUiState()
+                            },
+                            keyboardType = KeyboardType.Number,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Add features",
+                            fontWeight = FontWeight.Bold
+                        )
+                        PropertyFeatures(
+                            viewModel = viewModel
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "Upload photos",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        ImagesUpload(
+                            viewModel = viewModel
+                        )
+                    }
                 }
             }
         }
+
     }
+
 }
 
 @Composable
@@ -254,7 +275,7 @@ fun PropertyTypeSelection(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
-    val propertyTypes = listOf<String>("Rental", "Airbnb")
+    val propertyTypes = listOf<String>("Rental", "Airbnb", "On Sale", "Shop")
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -304,7 +325,7 @@ fun PropertyTypeSelection(
             ) {
                 for(type in propertyTypes) {
                     DropdownMenuItem(
-                        text = { Text(text = uiState.generalPropertyDetails.type) },
+                        text = { Text(text = type) },
                         onClick = {
                             selectedType = type
                             expanded = false
@@ -706,6 +727,7 @@ fun ImagesUpload(
     viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.imagesUiState.collectAsState()
     val context = LocalContext.current
     var imageUrl by remember {
         mutableStateOf<Uri?>(null)
@@ -720,7 +742,8 @@ fun ImagesUpload(
             uri?.let {
                 imageUrl = it
                 images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
-                viewModel.addImages(imageUrl!!)
+                viewModel.images.add(imageUrl!!)
+                viewModel.updateImagesUiState()
             }
         }
     )
@@ -736,7 +759,7 @@ fun ImagesUpload(
             }
         }
         LazyRow() {
-            items(images) { uri ->
+            items(uiState.images) { uri ->
                 uri?.let {
                     Card(
                         modifier = Modifier

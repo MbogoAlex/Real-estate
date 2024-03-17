@@ -18,6 +18,10 @@ data class FeaturesInputFieldsUiState (
     var features: List<String> = mutableListOf()
 )
 
+data class ImagesUiState (
+    var images: List<Uri> = mutableListOf()
+)
+
 data class GeneralPropertyDataUiState (
     val generalPropertyDetails: GeneralPropertyDetails = GeneralPropertyDetails(
         type = "",
@@ -60,6 +64,9 @@ class CreateNewPropertyViewModel(
 
     private val _generalPropertyDataUiState = MutableStateFlow(value = GeneralPropertyDataUiState())
     val generalPropertyDataUiState: StateFlow<GeneralPropertyDataUiState> = _generalPropertyDataUiState.asStateFlow()
+
+    private val _imagesUiState = MutableStateFlow(value = ImagesUiState())
+    val imagesUiState: StateFlow<ImagesUiState> = _imagesUiState.asStateFlow()
 
     var generalPropertyDetails by mutableStateOf(GeneralPropertyDetails())
 
@@ -126,13 +133,11 @@ class CreateNewPropertyViewModel(
         }
     }
 
-    fun addImages(image: Uri) {
-        images.add(image)
-        _generalPropertyDataUiState.update {
+    fun updateImagesUiState() {
+//        images.add(image)
+        _imagesUiState.update {
             it.copy(
-                generalPropertyDetails = generalPropertyDetails.copy(
-                    images = images
-                )
+                images = images
             )
         }
     }
