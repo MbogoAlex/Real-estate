@@ -1,10 +1,10 @@
 package com.example.propertymanagement.SFServices.model
 
 data class SFUserDetails(
-    val userId: Int,
-    val userEmail: String,
-    val userPhoneNumber: String,
-    val userFirstName: String,
-    val userLastName: String,
-    val token: String
+    var userId: Int?,
+    var userEmail: String,
+    var userPhoneNumber: String,
+    var userFirstName: String,
+    var userLastName: String,
+    var token: String
 )

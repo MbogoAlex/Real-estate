@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.propertymanagement.PManagerApplication
 import com.example.propertymanagement.ui.appViewModel.AppViewModel
+import com.example.propertymanagement.ui.views.AccountScreenViewModel
 import com.example.propertymanagement.ui.views.HomeScreenViewModel
 import com.example.propertymanagement.ui.views.LoginViewModel
 import com.example.propertymanagement.ui.views.RegistrationViewModel
@@ -60,6 +61,14 @@ object AppViewModelFactory {
         initializer {
             val pManagerApiRepository = pManagerApplication().container.pMangerApiRepository
             RegistrationViewModel(pMangerApiRepository = pManagerApiRepository)
+        }
+
+        //initialize AccountScreenViewModel
+        initializer {
+            val pManagerSFRepository = pManagerApplication().pManagerSFRepository
+            AccountScreenViewModel(
+                pManagerSFRepository = pManagerSFRepository
+            )
         }
 
 

@@ -83,6 +83,7 @@ fun PropertyScreen(
     navigateToUnit: (unitId: String) -> kotlin.Unit = {id -> },
     onBackButtonPressed: () -> Unit,
     navigateToRegistrationPage: () -> kotlin.Unit,
+    onLoadHomeScreen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
@@ -118,9 +119,9 @@ fun PropertyScreen(
 
             ),
         NavigationContent(
-            title = "Notifications",
-            icon = painterResource(id = R.drawable.notifications),
-            currentTab = BottomTab.NOTIFICATIONS,
+            title = "Advertise",
+            icon = painterResource(id = R.drawable.upload_property),
+            currentTab = BottomTab.UPLOAD_PROPERTY,
 
             ),
         NavigationContent(
@@ -144,16 +145,12 @@ fun PropertyScreen(
                         PropertyRooms.ONE
                         ) },
                     showContact = {
-                        if(viewModel.userRegistered) {
-                            showRegisterUserAlert = false
-                        } else {
-                            showRegisterUserAlert = true
-                        }
+                        showRegisterUserAlert = !listingsUiState.isRegistered
                     },
                     navigateToUnit = {
                         navigateToUnit(it.toString())
                     },
-                    isRegistered = viewModel.userRegistered,
+                    isRegistered = listingsUiState.isRegistered,
                     modifier = Modifier
                         .weight(1f)
 
@@ -166,8 +163,8 @@ fun PropertyScreen(
                         .weight(1f)
                 )
             }
-            BottomTab.NOTIFICATIONS -> {
-                NotificationsScreen(
+            BottomTab.UPLOAD_PROPERTY -> {
+                CreateNewPropertyScreen(
                     modifier = Modifier
                         .weight(1f)
                 )
@@ -175,6 +172,8 @@ fun PropertyScreen(
 
             BottomTab.ACCOUNT -> {
                 AccountScreen(
+                    onLoadHomeScreen = onLoadHomeScreen,
+                    loadRegistrationScreen = navigateToRegistrationPage,
                     modifier = Modifier
                         .weight(1f)
                 )
@@ -308,7 +307,6 @@ fun TopBarTextAndImage(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                top = 2.dp,
                 bottom = 2.dp
             )
     ) {
@@ -684,38 +682,10 @@ fun BottomNavigationBar(
                         Text(text = navItem.title)
                 },
                 icon = {
-                    if(newNotification) {
-                        if(index == navigationContentList.lastIndex) {
-                            Box(
-                                modifier = Modifier
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.Top,
-
-                                ) {
-                                    Icon(
-                                        painter = navItem.icon,
-                                        contentDescription = navItem.title,
-//                                        Modifier.alpha(0.7f)
-                                    )
-                                    Text(
-                                        text = numberOfNotifications.toString(),
-                                        color = Color.Red,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 20.sp,
-                                        modifier = Modifier
-//                                            .align(Alignment.TopEnd)
-                                    )
-                                }
-
-                            }
-                        } else {
-                            Icon(
-                                painter = navItem.icon,
-                                contentDescription = navItem.title
-                            )
-                        }
-                    }
+                    Icon(
+                        painter = navItem.icon,
+                        contentDescription = navItem.title
+                    )
                 }
             )
         }
@@ -806,9 +776,9 @@ fun BottomNavigationBarPreview() {
 
             ),
         NavigationContent(
-            title = "Notifications",
-            icon = painterResource(id = R.drawable.notifications),
-            currentTab = BottomTab.NOTIFICATIONS,
+            title = "Advertise",
+            icon = painterResource(id = R.drawable.upload_property),
+            currentTab = BottomTab.UPLOAD_PROPERTY,
 
             ),
         NavigationContent(
@@ -878,7 +848,8 @@ fun ScrollableUnitsScreenCompactPreview(
     PropertyManagementTheme {
         PropertyScreen(
             onBackButtonPressed = {},
-            navigateToRegistrationPage = {}
+            navigateToRegistrationPage = {},
+            onLoadHomeScreen = {}
         )
     }
 }

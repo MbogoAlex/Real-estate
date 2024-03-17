@@ -36,6 +36,7 @@ data class ListingsUiState(
     val units: Map<ListingsType, List<PropertyUnit>> = emptyMap(),
     val listingsType: ListingsType = ListingsType.RENTALS,
     val propertyRooms: PropertyRooms = PropertyRooms.ONE,
+    val isRegistered: Boolean = false
 ) {
     val unitsToDisplay: List<PropertyUnit> by lazy {
         units[listingsType]!!
@@ -46,7 +47,6 @@ class HomeScreenViewModel(
     private val pManagerSFRepository: PManagerSFRepository
 ): ViewModel() {
 
-    var userRegistered: Boolean = false
     //bottom bar viewModel
 
     private val _bottomBarUiState = MutableStateFlow(value = BottomBarUiState())
@@ -77,7 +77,11 @@ class HomeScreenViewModel(
     fun checkIfUserRegistered() {
         viewModelScope.launch {
             pManagerSFRepository.sfUserId.collect() { userId ->
-                userRegistered = userId != null
+                _listingsUiState.update {
+                    it.copy(
+                        isRegistered = userId != null
+                    )
+                }
             }
         }
     }

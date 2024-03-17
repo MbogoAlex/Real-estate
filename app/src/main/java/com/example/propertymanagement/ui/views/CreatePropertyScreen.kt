@@ -1,15 +1,13 @@
 package com.example.propertymanagement.ui.views
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,11 +36,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
+import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.example.propertymanagement.utils.convertMillisToDate
 
@@ -66,77 +65,107 @@ import com.example.propertymanagement.utils.convertMillisToDate
 fun CreateNewPropertyScreen(
     modifier: Modifier = Modifier
 ) {
+    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
+    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)
-            .verticalScroll(ScrollState(0))
+        modifier = modifier
     ) {
-        Card() {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-            ) {
-                Row {
-                    PropertyTypeSelection(
+        UploadPropertyTopBar()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp)
+                .verticalScroll(ScrollState(0))
+        ) {
+            Card() {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                ) {
+                    Row {
+                        PropertyTypeSelection(
+                            modifier = Modifier
+                                .weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        NumberOfRoomsSelection(
+                            modifier = Modifier
+                                .weight(1f)
+                        )
+                    }
+                    //title field
+                    InputField(
+                        label = "Title",
+                        value = uiState.generalPropertyDetails.title,
+                        onValueChanged = {
+                                         viewModel.generalPropertyDetails =
+                                             viewModel.generalPropertyDetails.copy(
+                                                 title = it
+                                             )
+                        },
+                        keyboardType = KeyboardType.Text,
+                        maxLines = 2,
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    NumberOfRoomsSelection(
+                    //description field
+                    InputField(
+                        label = "Description",
+                        value = uiState.generalPropertyDetails.description,
+                        onValueChanged = {
+                                         viewModel.generalPropertyDetails =
+                                             viewModel.generalPropertyDetails.copy(
+                                                 description = it
+                                             )
+                        },
+                        keyboardType = KeyboardType.Text,
+                        maxLines = 3,
                         modifier = Modifier
-                            .weight(1f)
+                            .fillMaxWidth()
                     )
-                }
-                //title field
-                InputField(
-                    label = "Title",
-                    value = "",
-                    onValueChanged = { /*TODO*/ },
-                    keyboardType = KeyboardType.Text,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                //description field
-                InputField(
-                    label = "Description",
-                    value = "",
-                    onValueChanged = { /*TODO*/ },
-                    keyboardType = KeyboardType.Text,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                AvailabilitySelection()
-                LocationSelection(
-                    addressValue = "",
-                    countyValue = "",
-                    latitudeValue = "",
-                    longitudeValue = "",
-                    onAddressValueChanged = {},
-                    onLatitudeValueChanged = {},
-                    onLongitudeValueChanged = {},
-                    onCountyValueChanged = {}
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Price",
-                    fontWeight = FontWeight.Bold
-                )
-                InputField(
-                    label = "Price",
-                    value = "",
-                    onValueChanged = {},
-                    keyboardType = KeyboardType.Number,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Add features",
-                    fontWeight = FontWeight.Bold
-                )
-                PropertyFeatures()
+                    AvailabilitySelection()
+                    LocationSelection(
+                        addressValue = uiState.generalPropertyDetails.address,
+                        countyValue = uiState.generalPropertyDetails.county,
+                        latitudeValue = "",
+                        longitudeValue = "",
+                        onAddressValueChanged = {
+                                                viewModel.generalPropertyDetails =
+                                                    viewModel.generalPropertyDetails.copy(
+                                                        address = it
+                                                    )
+                        },
+                        onLatitudeValueChanged = {},
+                        onLongitudeValueChanged = {},
+                        onCountyValueChanged = {
+                            viewModel.generalPropertyDetails =
+                                viewModel.generalPropertyDetails.copy(
+                                    county = it
+                                )
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Price",
+                        fontWeight = FontWeight.Bold
+                    )
+                    InputField(
+                        label = "Price",
+                        value = "",
+                        onValueChanged = {},
+                        keyboardType = KeyboardType.Number,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Add features",
+                        fontWeight = FontWeight.Bold
+                    )
+                    PropertyFeatures()
 
+                }
             }
         }
     }
@@ -296,6 +325,7 @@ fun InputField(
     keyboardType: KeyboardType,
     label: String,
     value: String,
+    maxLines: Int,
     onValueChanged: (newValue: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -311,6 +341,7 @@ fun InputField(
             imeAction = ImeAction.Done,
             keyboardType = keyboardType
         ),
+        maxLines = maxLines,
         shape = RoundedCornerShape(10.dp),
         modifier = modifier
     )
@@ -445,6 +476,7 @@ fun LocationSelection(
                 value = countyValue,
                 onValueChanged = onCountyValueChanged,
                 keyboardType = KeyboardType.Text,
+                maxLines = 1,
                 modifier = Modifier
                     .weight(1f)
             )
@@ -454,34 +486,13 @@ fun LocationSelection(
                 value = addressValue,
                 onValueChanged = onAddressValueChanged,
                 keyboardType = KeyboardType.Text,
+                maxLines = 1,
                 modifier = Modifier
                     .weight(1f)
             )
 
         }
-//        Spacer(modifier = Modifier.height(20.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            InputField(
-                label = "Latitude",
-                value = latitudeValue,
-                onValueChanged = onLatitudeValueChanged,
-                keyboardType = KeyboardType.Text,
-                modifier = Modifier
-                    .weight(1f)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            InputField(
-                label = "Longitude",
-                value = longitudeValue,
-                onValueChanged = onLongitudeValueChanged,
-                keyboardType = KeyboardType.Text,
-                modifier = Modifier
-                    .weight(1f)
-            )
-        }
+
     }
 }
 
@@ -511,6 +522,7 @@ fun PropertyFeatures(
                                      viewModel.features[index] = feature
                         viewModel.updateFeaturesFieldUiState();
                     },
+                    maxLines = 1,
                     modifier = Modifier
                         .weight(2f)
                 )
@@ -540,6 +552,45 @@ fun PropertyFeatures(
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add new feature"
+            )
+        }
+    }
+}
+
+@Composable
+fun UploadPropertyTopBar(
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shadowElevation = 9.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Row(
+            //        horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 10.dp,
+                    end = 10.dp
+                )
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.prop_ease_3),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(90.dp)
+                    .height(60.dp)
+            )
+            Text(
+                text = "PropEase",
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "Upload property",
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -597,6 +648,7 @@ fun InputFieldPreview() {
             label = "Title",
             value = "",
             keyboardType = KeyboardType.Text,
+            maxLines = 1,
             onValueChanged = {}
         )
     }

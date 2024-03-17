@@ -29,7 +29,7 @@ class PManagerSFRepository(
         sfUserDetails: SFUserDetails
     ) {
         dataStore.edit { preferences ->
-            preferences[USER_ID] = sfUserDetails.userId
+            preferences[USER_ID] = sfUserDetails.userId!!
             preferences[USER_EMAIL] = sfUserDetails.userEmail
             preferences[USER_PHONE_NUMBER] = sfUserDetails.userPhoneNumber
             preferences[USER_FIRST_NAME] = sfUserDetails.userFirstName
@@ -109,4 +109,46 @@ class PManagerSFRepository(
         .map {
             it[TOKEN] ?: ""
         }
+
+    suspend fun deleteAllPreferences() {
+        dataStore.edit {
+            it.clear()
+        }
+    }
+
+    val userDetails: Flow<SFUserDetails> = dataStore.data
+        .catch {
+            if(it is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map {
+            it.toSFUserDetails(
+                userId = it[USER_ID] ?: null,
+                userEmail = it[USER_EMAIL] ?: "",
+                userPhoneNumber = it[USER_PHONE_NUMBER] ?: "",
+                userFirstName = it[USER_FIRST_NAME] ?: "",
+                userLastName = it[USER_LAST_NAME] ?: "",
+                token = it[TOKEN] ?: ""
+            )
+        }
+
+    private fun Preferences.toSFUserDetails(
+        userId: Int?,
+        userEmail: String,
+        userPhoneNumber: String,
+        userFirstName: String,
+        userLastName: String,
+        token: String
+    ): SFUserDetails = SFUserDetails(
+        userId = userId,
+        userEmail = userEmail,
+        userPhoneNumber = userPhoneNumber,
+        userFirstName = userFirstName,
+        userLastName = userLastName,
+        token = token
+
+    )
 }

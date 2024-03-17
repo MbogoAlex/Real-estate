@@ -36,6 +36,9 @@ fun PManagerNavHost(
                 onBackButtonPressed = { navController.navigateUp() },
                 navigateToRegistrationPage = {
                     navController.navigate(RegistrationScreenDestination.route)
+                },
+                onLoadHomeScreen = {
+                    navController.navigate(HomeDestination.route)
                 }
             )
         }
