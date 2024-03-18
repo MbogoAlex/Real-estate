@@ -65,6 +65,7 @@ fun CreatePropertyPreviewScreen(
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(20.dp))
             ImageSlider(
                 generalPropertyDetails = generalPropertyDetails,
                 images = imagesUiState.images

@@ -275,7 +275,7 @@ fun PropertyTypeSelection(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
-    val propertyTypes = listOf<String>("Rental", "Airbnb", "On Sale", "Shop")
+    val propertyTypes = uiState.categories
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -325,13 +325,13 @@ fun PropertyTypeSelection(
             ) {
                 for(type in propertyTypes) {
                     DropdownMenuItem(
-                        text = { Text(text = type) },
+                        text = { Text(text = type.name) },
                         onClick = {
-                            selectedType = type
+                            selectedType = type.name
                             expanded = false
                             viewModel.generalPropertyDetails =
                                 viewModel.generalPropertyDetails.copy(
-                                    type = type
+                                    type = type.name
                                 )
                             viewModel.updateGeneralUiState()
                         }

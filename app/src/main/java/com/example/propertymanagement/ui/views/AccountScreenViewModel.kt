@@ -3,12 +3,10 @@ package com.example.propertymanagement.ui.views
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
-import com.example.propertymanagement.SFServices.model.SFUserDetails
+import com.example.propertymanagement.utils.toLoggedInUserDetails
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class LoggedInUserDetails (
@@ -19,13 +17,7 @@ data class LoggedInUserDetails (
     val token: String = "",
 )
 
-fun SFUserDetails.toLoggedInUserDetails(): LoggedInUserDetails = LoggedInUserDetails(
-    userId = userId,
-    name = "$userFirstName $userLastName",
-    email  = userEmail,
-    phoneNumber = userPhoneNumber,
-    token = token,
-)
+
 
 class AccountScreenViewModel(
     val pManagerSFRepository: PManagerSFRepository

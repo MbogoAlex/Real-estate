@@ -1,18 +1,24 @@
 package com.example.propertymanagement.ui.views
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
+import com.example.propertymanagement.apiServices.model.Category
 import com.example.propertymanagement.apiServices.networkRepository.NetworkPManagerApiRepository
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
+import com.example.propertymanagement.utils.toLoggedInUserDetails
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class FeaturesInputFieldsUiState (
     var features: List<String> = mutableListOf()
@@ -37,6 +43,7 @@ data class GeneralPropertyDataUiState (
         features = mutableListOf(),
         images = mutableListOf(),
     ),
+    val categories: List<Category> = mutableListOf(),
     val showCreateButton: Boolean = false,
     val showPreview:  Boolean = false
 )
@@ -75,6 +82,8 @@ class CreateNewPropertyViewModel(
 
     var images by mutableStateOf(mutableStateListOf<Uri>())
 
+    var userDetails: LoggedInUserDetails = LoggedInUserDetails()
+
 
     fun updateGeneralUiState() {
         _generalPropertyDataUiState.update {
@@ -87,6 +96,16 @@ class CreateNewPropertyViewModel(
 
     init {
         _featuresInputFieldsUiState.value.features = features
+        loadUserDetails()
+        getCategories()
+    }
+
+    fun loadUserDetails() {
+        viewModelScope.launch {
+            pManagerSFRepository.userDetails.collect() {
+                userDetails = it.toLoggedInUserDetails()
+            }
+        }
     }
 
 
@@ -141,5 +160,28 @@ class CreateNewPropertyViewModel(
             )
         }
     }
+
+    fun getCategories() {
+        viewModelScope.launch {
+            try {
+                val response = pManagerApiRepository.getCategories("Bearer ${userDetails.token}")
+                if(response.isSuccessful) {
+                    Log.i("FETCHING_CATEGORIES_STATUS", response.isSuccessful.toString())
+                    _generalPropertyDataUiState.update {
+                        it.copy(
+                            categories = response.body()!!.data.categories
+                        )
+                    }
+                } else {
+                    Log.i("FETCHING_CATEGORIES_STATUS", response.isSuccessful.toString())
+                }
+            } catch (e: Exception) {
+                Log.e("FETCHING_CATEGORIES_STATUS", "Error fetching categories: ${e.message}")
+            }
+
+
+        }
+    }
+
 
 }

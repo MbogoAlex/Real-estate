@@ -3,10 +3,12 @@ package com.example.propertymanagement.ui.views
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
+import com.example.propertymanagement.apiServices.model.Category
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import com.example.propertymanagement.datasource.Datasource
 import com.example.propertymanagement.model.BottomTab
 import com.example.propertymanagement.model.PropertyUnit
+import com.example.propertymanagement.utils.toLoggedInUserDetails
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,7 +38,8 @@ data class ListingsUiState(
     val units: Map<ListingsType, List<PropertyUnit>> = emptyMap(),
     val listingsType: ListingsType = ListingsType.RENTALS,
     val propertyRooms: PropertyRooms = PropertyRooms.ONE,
-    val isRegistered: Boolean = false
+    val isRegistered: Boolean = false,
+    val categories: List<Category> = mutableListOf()
 ) {
     val unitsToDisplay: List<PropertyUnit> by lazy {
         units[listingsType]!!
@@ -56,7 +59,7 @@ class HomeScreenViewModel(
     private val _listingsUiState = MutableStateFlow(value = ListingsUiState())
     val listingsUiState: StateFlow<ListingsUiState> = _listingsUiState.asStateFlow()
 
-
+    var userDetails: LoggedInUserDetails = LoggedInUserDetails()
 
 
     fun initialUnits() {
@@ -69,9 +72,19 @@ class HomeScreenViewModel(
         )
     }
 
+    fun loadUserDetails() {
+        viewModelScope.launch {
+            pManagerSFRepository.userDetails.collect() {
+                userDetails = it.toLoggedInUserDetails()
+            }
+        }
+    }
+
     init {
         initialUnits()
         checkIfUserRegistered()
+        loadUserDetails()
+        fetchCategories()
     }
 
     fun checkIfUserRegistered() {
@@ -100,6 +113,19 @@ class HomeScreenViewModel(
             it.copy(
                 bottomTab = bottomTab
             )
+        }
+    }
+
+    fun fetchCategories() {
+        viewModelScope.launch {
+            val response = pManagerApiRepository.getCategories("Bearer ${userDetails.token}")
+            if(response.isSuccessful) {
+                _listingsUiState.update {
+                    it.copy(
+                        categories = response.body()!!.data.categories
+                    )
+                }
+            }
         }
     }
 }
