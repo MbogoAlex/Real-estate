@@ -84,7 +84,7 @@ class HomeScreenViewModel(
         initialUnits()
         checkIfUserRegistered()
         loadUserDetails()
-        fetchCategories()
+//        fetchCategories()
     }
 
     fun checkIfUserRegistered() {

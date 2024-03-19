@@ -73,6 +73,7 @@ fun RegistrationScreen(
     proceedToLogin: (phoneNumber: String, password: String) -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
+    var num = 1
     val viewModel: RegistrationViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -82,15 +83,19 @@ fun RegistrationScreen(
     var loadingIndicator by remember {
         mutableStateOf(false)
     }
+
     when(uiState.registrationStatus) {
         RegistrationStatus.START -> {}
         RegistrationStatus.LOADING -> loadingIndicator = true
         RegistrationStatus.SUCCESS -> {
+            num += 1
+            Log.e("REGISTER_LOOP", "THIS CODE IS RUNNING INFINITELY: $num")
             loadingIndicator = false
             proceedToLogin(
                 uiState.userDetails.phoneNumber,
                 uiState.userDetails.password
             )
+            viewModel.updateRegistrationStatusToDone()
         }
         RegistrationStatus.FAIL -> {
             Toast.makeText(context, "Authentication failed. Try again later", Toast.LENGTH_SHORT).show()
@@ -301,7 +306,11 @@ fun RegistrationScreen(
                         Text(
                             text = "Sign in",
                             style = TextStyle(color = Color.Red),
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clickable {
+                                    proceedToLogin("0", "0")
+                                }
                         )
                     }
                 }

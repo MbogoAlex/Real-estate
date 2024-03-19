@@ -1,6 +1,9 @@
 package com.example.propertymanagement.ui.views
 
+import android.content.Context
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,33 +26,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.propertymanagement.R
+import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import java.io.File
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CreatePropertyPreviewScreen(
+    context: Context,
+    categoryId: Int,
+    viewModel: CreateNewPropertyViewModel,
     generalPropertyDetails: GeneralPropertyDetails,
     featuresInputFieldsUiState: FeaturesInputFieldsUiState,
     imagesUiState: ImagesUiState,
     onBackButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val images = listOf<Int>(
-        R.drawable._bedroom1,
-        R.drawable._bedroom2,
-        R.drawable.bedsitter3
-    )
+
 
     Column(
         modifier = modifier
@@ -58,7 +64,12 @@ fun CreatePropertyPreviewScreen(
     ) {
         CreatePropertyPreviewTopBar(
             onBackButtonClicked = onBackButtonClicked,
-            onSaveButtonClicked = {}
+            onSaveButtonClicked = {
+                viewModel.uploadProperty(
+                    categoryId = categoryId,
+                    context = context
+                )
+            }
         )
         Spacer(modifier = Modifier.height(10.dp))
         Column(
@@ -82,7 +93,7 @@ fun CreatePropertyPreviewScreen(
 @Composable
 fun ImageSlider(
     generalPropertyDetails: GeneralPropertyDetails,
-    images: List<Uri>,
+    images: List<File>,
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
@@ -206,9 +217,12 @@ fun CreatePropertyPreviewTopBarPreview() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun CreatePropertyPreviewScreenPreview() {
+    val context = LocalContext.current
+    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val generalPropertyDetails = GeneralPropertyDetails(
         type = "Arbnb",
         rooms = "2",
@@ -225,6 +239,9 @@ fun CreatePropertyPreviewScreenPreview() {
     )
     PropertyManagementTheme {
         CreatePropertyPreviewScreen(
+            context = context,
+            categoryId = 1,
+            viewModel = viewModel,
             generalPropertyDetails = generalPropertyDetails,
             featuresInputFieldsUiState = FeaturesInputFieldsUiState(),
             imagesUiState = ImagesUiState(),

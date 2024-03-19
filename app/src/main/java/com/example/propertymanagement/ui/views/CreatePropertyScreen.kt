@@ -1,5 +1,8 @@
 package com.example.propertymanagement.ui.views
 
+import android.content.ContentResolver
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -10,11 +13,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,11 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +35,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -66,8 +62,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,20 +72,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.propertymanagement.R
 import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.example.propertymanagement.utils.convertMillisToDate
+import java.io.File
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CreateNewPropertyScreen(
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     val imagesUiState by viewModel.imagesUiState.collectAsState()
@@ -99,6 +98,9 @@ fun CreateNewPropertyScreen(
     }
     if(showPreview) {
         CreatePropertyPreviewScreen(
+            context = context,
+            categoryId = 1  ,
+            viewModel = viewModel,
             generalPropertyDetails = uiState.generalPropertyDetails,
             featuresInputFieldsUiState = featuresInputFieldsUiState,
             imagesUiState = imagesUiState,
@@ -258,6 +260,7 @@ fun CreateNewPropertyScreen(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         ImagesUpload(
+                            context = context,
                             viewModel = viewModel
                         )
                     }
@@ -465,6 +468,8 @@ fun AvailabilitySelection(
     viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
+    val inputDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val outputDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val uiState by viewModel.generalPropertyDataUiState.collectAsState()
     val options = listOf<String>("Now", "Pick date")
     var selected by remember {
@@ -487,10 +492,11 @@ fun AvailabilitySelection(
     val selectedDate = state.selectedDateMillis?.let { 
         convertMillisToDate(it)
     }
+    val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val now = remember {
         LocalDate.now()
     }
-    val formattedDate = now.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+    val formattedDate = now.format(dateFormatter)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -527,6 +533,7 @@ fun AvailabilitySelection(
             viewModel.generalPropertyDetails = viewModel.generalPropertyDetails.copy(
                 date = formattedDate
             )
+            Log.i("FORMATTED_DATE", formattedDate)
             viewModel.updateGeneralUiState()
         } else {
             if(openDialog) {
@@ -536,11 +543,15 @@ fun AvailabilitySelection(
                                     TextButton(onClick = {
                                         openDialog = false
                                         availableDate = selectedDate!!
+                                        val parsedDate = inputDateFormat.parse(availableDate)
+                                        val formattedDate = outputDateFormat.format(parsedDate)
                                         viewModel.generalPropertyDetails =
                                             viewModel.generalPropertyDetails.copy(
-                                                date = availableDate
+                                                date = formattedDate
                                             )
                                         viewModel.updateGeneralUiState()
+
+                                        Log.i("FORMATTED_DATE", formattedDate)
                                     }) {
                                         Text(text = "OK")
                                     }
@@ -724,11 +735,14 @@ fun UploadPropertyTopBar(
 
 @Composable
 fun ImagesUpload(
+    context: Context,
     viewModel: CreateNewPropertyViewModel,
     modifier: Modifier = Modifier
 ) {
+
+
     val uiState by viewModel.imagesUiState.collectAsState()
-    val context = LocalContext.current
+
     var imageUrl by remember {
         mutableStateOf<Uri?>(null)
     }
@@ -742,11 +756,32 @@ fun ImagesUpload(
             uri?.let {
                 imageUrl = it
                 images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
-                viewModel.images.add(imageUrl!!)
-                viewModel.updateImagesUiState()
+
+
+                // Open an input stream from the content resolver associated with the URI
+                val inputStream = context.contentResolver.openInputStream(uri)
+                inputStream?.use { input ->
+                    // Create a temporary file to save the image
+                    val tempFile = File(context.cacheDir, "temp_image")
+                    tempFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                    Log.i("", tempFile.toString())
+
+                    // Now you can use tempFile.getAbsolutePath() or tempFile.path to get the file path
+                    if (tempFile.exists()) {
+                        viewModel.images.add(tempFile)
+                        viewModel.updateImagesUiState()
+                    } else {
+                        Log.e("IMAGE_ERROR", "Image file does not exist")
+                    }
+                }
             }
         }
     )
+
+
+
 
     Column {
         TextButton(onClick = { galleryLauncher.launch("image/*") }) {
@@ -766,7 +801,11 @@ fun ImagesUpload(
                             .height(100.dp)
                     ) {
                         Image(
-                            painter = rememberImagePainter(uri),
+                            bitmap = remember {
+                                val file = File(uri.path)
+                                val bitMap = BitmapFactory.decodeFile(file.absolutePath)
+                                bitMap.asImageBitmap()
+                            },
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

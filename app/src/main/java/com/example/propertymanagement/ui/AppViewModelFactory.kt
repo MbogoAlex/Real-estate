@@ -74,7 +74,7 @@ object AppViewModelFactory {
 
         //initialize CreatePropertyViewModel
         initializer {
-            val pManagerApiRepository = pManagerApplication().container.pMangerApiRepository
+            val pManagerApiRepository = pManagerApplication().formDataContainer.pMangerApiRepository
             val pManagerSFRepository = pManagerApplication().pManagerSFRepository
             CreateNewPropertyViewModel(
                 pManagerApiRepository = pManagerApiRepository,

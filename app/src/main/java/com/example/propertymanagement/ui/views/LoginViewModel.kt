@@ -17,6 +17,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class LoginStatus {
+    START,
+    LOADING,
+    SUCCESS,
+    FAIL
+}
 data class LoginUserDetails(
     val phoneNumber: String,
     val password: String
@@ -24,6 +30,7 @@ data class LoginUserDetails(
 
 data class LoginUiState(
     val loginUserDetails: LoginUserDetails = LoginUserDetails("", ""),
+    val loginStatus: LoginStatus,
     val buttonEnabled: Boolean,
     val loginSuccessful: Boolean,
 )
@@ -36,6 +43,7 @@ class LoginViewModel(
     private val password: String? = savedStateHandle[LoginScreenDestination.password]
     var loginUserDetails by mutableStateOf(LoginUserDetails(phoneNumber ?: "", password ?: ""))
     private val _uiState = MutableStateFlow(LoginUiState(
+        loginStatus = LoginStatus.START,
         buttonEnabled = checkIfFieldsAreFilled(),
         loginSuccessful = false
     ))
@@ -56,6 +64,11 @@ class LoginViewModel(
     }
 
     fun loginUser() {
+        _uiState.update {
+            it.copy(
+                loginStatus = LoginStatus.LOADING
+            )
+        }
         viewModelScope.launch {
             val response = pMangerApiRepository.loginUser(loginUserDetails.toLoginDetails())
             if(response.isSuccessful) {
@@ -76,8 +89,27 @@ class LoginViewModel(
                         loginSuccessful = true
                     )
                 }
+                _uiState.update {
+                    it.copy(
+                        loginStatus = LoginStatus.SUCCESS
+                    )
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        loginStatus = LoginStatus.FAIL
+                    )
+                }
             }
 
+        }
+    }
+
+    fun updateLoginStatusToDone() {
+        _uiState.update {
+            it.copy(
+                loginStatus = LoginStatus.START
+            )
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.propertymanagement.apiServices.network
 import com.example.propertymanagement.apiServices.model.CategoriesResponse
 import com.example.propertymanagement.apiServices.model.LoginDetails
 import com.example.propertymanagement.apiServices.model.LoginResponseStatus
+import com.example.propertymanagement.apiServices.model.Property
 import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
@@ -16,6 +17,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
+import retrofit2.http.Path
 
 interface PMangerApiService {
     @POST("api/auth/register")
@@ -25,10 +27,12 @@ interface PMangerApiService {
     public suspend fun loginUser(@Body loginDetails: LoginDetails): Response<LoginResponseStatus>
 
     @Multipart
-    @POST("api/property/create")
+    @POST("api/property/userId={id}/create")
     suspend fun uploadPropertyDetails(
-        @PartMap() partMap: MutableMap<String, RequestBody>,
-        @Part file: MultipartBody.Part
+        @Header("Authorization") token: String,
+        @Path("id") userId: String,
+        @Part("data") property: Property,
+        @Part imageFiles: List<MultipartBody.Part>
     ): Response<PropertyUploadResponse>
 
     @GET("api/category")

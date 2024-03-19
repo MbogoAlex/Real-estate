@@ -3,6 +3,7 @@ package com.example.propertymanagement.apiServices.networkRepository
 import com.example.propertymanagement.apiServices.model.CategoriesResponse
 import com.example.propertymanagement.apiServices.model.LoginDetails
 import com.example.propertymanagement.apiServices.model.LoginResponseStatus
+import com.example.propertymanagement.apiServices.model.Property
 import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
@@ -16,7 +17,7 @@ interface PMangerApiRepository {
     suspend fun registerUser(user: RegistrationDetails): Response<RegistrationResponseStatus>
     suspend fun loginUser(loginDetails: LoginDetails): Response<LoginResponseStatus>
 
-    suspend fun createProperty(partMap: MutableMap<String, RequestBody>, image: MultipartBody.Part): Response<PropertyUploadResponse>
+    suspend fun createProperty(token: String, userId: String, property: Property, images: List<MultipartBody.Part>): Response<PropertyUploadResponse>
 
     suspend fun getCategories(token: String): Response<CategoriesResponse>
 }
@@ -26,9 +27,11 @@ class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiSer
     override suspend fun loginUser(loginDetails: LoginDetails): Response<LoginResponseStatus> = pManagerApiService.loginUser(loginDetails)
 
     override suspend fun createProperty(
-        partMap: MutableMap<String, RequestBody>,
-        image: MultipartBody.Part
-    ): Response<PropertyUploadResponse> = pManagerApiService.uploadPropertyDetails(partMap, image)
+        token: String,
+        userId: String,
+        property: Property,
+        images: List<MultipartBody.Part>
+    ): Response<PropertyUploadResponse> = pManagerApiService.uploadPropertyDetails(token, userId, property, images)
 
     override suspend fun getCategories(token: String): Response<CategoriesResponse> = pManagerApiService.getCategories(token)
 }

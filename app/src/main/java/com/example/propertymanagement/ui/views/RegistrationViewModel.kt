@@ -18,7 +18,7 @@ enum class RegistrationStatus {
     START,
     LOADING,
     SUCCESS,
-    FAIL
+    FAIL,
 }
 data class UserDetails(
     val firstName: String,
@@ -82,6 +82,14 @@ class RegistrationViewModel(private val pMangerApiRepository: PMangerApiReposito
                     )
                 }
             }
+        }
+    }
+
+    fun updateRegistrationStatusToDone() {
+        _uiState.update {
+            it.copy(
+                registrationStatus = RegistrationStatus.START
+            )
         }
     }
 }
