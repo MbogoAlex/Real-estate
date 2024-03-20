@@ -1,22 +1,32 @@
 package com.example.propertymanagement.apiServices.model
 
 import kotlinx.serialization.Serializable
-
+@Serializable
+data class PropertyDetails (
+    val title: String,
+    val description: String,
+    val categoryId: Int,
+    val rooms: Int,
+    val price: Double,
+    val availableDate: String,
+    val features: List<String>,
+    val location: Location,
+)
 
 @Serializable
 data class PropertyUploadResponse(
     val statusCode: Int,
     val message: String,
-    val data: PropertyData
+    val data: PropertyUploadResponseData
 )
 
 @Serializable
-data class PropertyData(
-    val property: Property
+data class PropertyUploadResponseData(
+    val property: PropertyUploadResponseDataBody
 )
 
 @Serializable
-data class Property(
+data class PropertyUploadResponseDataBody(
     val id: Int,
     val title: String,
     val description: String,
@@ -26,7 +36,7 @@ data class Property(
     val availableDate: String,
     val features: List<String>,
     val location: Location,
-    val images: List<String>
+    val images: List<Image>
 )
 
 @Serializable

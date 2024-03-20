@@ -2,43 +2,30 @@ package com.example.propertymanagement.ui.views
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.util.Log
-import android.webkit.MimeTypeMap
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
 import com.example.propertymanagement.apiServices.model.Category
 import com.example.propertymanagement.apiServices.model.Location
-import com.example.propertymanagement.apiServices.model.Property
-import com.example.propertymanagement.apiServices.networkRepository.NetworkPManagerApiRepository
+import com.example.propertymanagement.apiServices.model.PropertyDetails
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import com.example.propertymanagement.utils.toLoggedInUserDetails
-import com.google.gson.Gson
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.ResponseBody
 import java.io.File
-import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 data class FeaturesInputFieldsUiState (
     var features: List<String> = mutableListOf()
@@ -208,9 +195,9 @@ class CreateNewPropertyViewModel(
     fun uploadProperty(categoryId: Int, context: Context) {
         Log.i("UPLOAD_PROPERTY", "uploadProperty function called")
         var imageParts = ArrayList<MultipartBody.Part>()
-        _imagesUiState.value.images.forEach {imageUrl ->
-            Log.i("IMAGE_PATH", imageUrl.path)
-            val imageFile = File(imageUrl.path)
+        _imagesUiState.value.images.forEach {file ->
+            Log.i("IMAGE_PATH", file.path)
+            val imageFile = File(file.path)
             val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
             val imagePart = MultipartBody.Part.createFormData("imageFiles", imageFile.name, requestFile)
             imageParts.add(imagePart)
@@ -230,8 +217,7 @@ class CreateNewPropertyViewModel(
         }
 
 
-        val property = Property(
-            id = 0,
+        val property = PropertyDetails(
             title = _generalPropertyDataUiState.value.generalPropertyDetails.title,
             description = _generalPropertyDataUiState.value.generalPropertyDetails.description,
             categoryId = categoryId,
@@ -240,7 +226,6 @@ class CreateNewPropertyViewModel(
             availableDate = _generalPropertyDataUiState.value.generalPropertyDetails.date,
             features = _featuresInputFieldsUiState.value.features,
             location = location,
-            images = images,
         )
 
 
