@@ -3,6 +3,7 @@ package com.example.propertymanagement.ui.views
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,14 +26,16 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 
 data class FeaturesInputFieldsUiState (
     var features: List<String> = mutableListOf()
 )
 
 data class ImagesUiState (
-    var images: List<File> = mutableListOf()
+    var images: List<Uri> = mutableListOf()
 )
 
 data class GeneralPropertyDataUiState (
@@ -87,7 +90,7 @@ class CreateNewPropertyViewModel(
 
     var features by mutableStateOf(mutableStateListOf(""))
 
-    var images by mutableStateOf(mutableStateListOf<File>())
+    var images by mutableStateOf(mutableStateListOf<Uri>())
 
     var userDetails: LoggedInUserDetails = LoggedInUserDetails()
 
@@ -195,16 +198,33 @@ class CreateNewPropertyViewModel(
     fun uploadProperty(categoryId: Int, context: Context) {
         Log.i("UPLOAD_PROPERTY", "uploadProperty function called")
         var imageParts = ArrayList<MultipartBody.Part>()
-        _imagesUiState.value.images.forEach {file ->
-            Log.i("IMAGE_PATH", file.path)
-            val imageFile = File(file.path)
-            val requestFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
-            val imagePart = MultipartBody.Part.createFormData("imageFiles", imageFile.name, requestFile)
-            imageParts.add(imagePart)
+        _imagesUiState.value.images.forEach { uri ->
+            val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r", null)
+            parcelFileDescriptor?.let { pfd ->
+                val inputStream = FileInputStream(pfd.fileDescriptor)
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                val buffer = ByteArray(1024)
+                var length: Int
+                while(inputStream.read(buffer).also { length = it } != -1) {
+                    byteArrayOutputStream.write(buffer, 0, length)
+                }
+                val byteArray = byteArrayOutputStream.toByteArray()
+
+                //Get the MIME type of the file
+
+                val mimeType = context.contentResolver.getType(uri)
+                val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType)
+                val requestFile = RequestBody.create(mimeType?.toMediaTypeOrNull(), byteArray)
+                val imagePart = MultipartBody.Part.createFormData("imageFiles", "upload.$extension", requestFile)
+                imageParts.add(imagePart)
+            }
+
         }
+
 
         for(part in imageParts) {
             Log.i("IMAGE_PARTS", part.toString())
+
         }
         val location = Location(
             address = _generalPropertyDataUiState.value.generalPropertyDetails.address,

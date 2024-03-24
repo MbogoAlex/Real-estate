@@ -93,7 +93,7 @@ fun CreatePropertyPreviewScreen(
 @Composable
 fun ImageSlider(
     generalPropertyDetails: GeneralPropertyDetails,
-    images: List<File>,
+    images: List<Uri>,
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(initialPage = 0)

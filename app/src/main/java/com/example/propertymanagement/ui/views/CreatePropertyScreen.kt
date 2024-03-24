@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -77,7 +78,12 @@ import com.example.propertymanagement.R
 import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 import com.example.propertymanagement.utils.convertMillisToDate
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import java.io.File
+import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -757,25 +763,9 @@ fun ImagesUpload(
                 imageUrl = it
                 images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
 
-
                 // Open an input stream from the content resolver associated with the URI
-                val inputStream = context.contentResolver.openInputStream(uri)
-                inputStream?.use { input ->
-                    // Create a temporary file to save the image
-                    val tempFile = File(context.cacheDir, "temp_image")
-                    tempFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                    Log.i("", tempFile.toString())
-
-                    // Now you can use tempFile.getAbsolutePath() or tempFile.path to get the file path
-                    if (tempFile.exists()) {
-                        viewModel.images.add(tempFile)
-                        viewModel.updateImagesUiState()
-                    } else {
-                        Log.e("IMAGE_ERROR", "Image file does not exist")
-                    }
-                }
+                viewModel.images.add(uri)
+                viewModel.updateImagesUiState()
             }
         }
     )
@@ -801,11 +791,7 @@ fun ImagesUpload(
                             .height(100.dp)
                     ) {
                         Image(
-                            bitmap = remember {
-                                val file = File(uri.path)
-                                val bitMap = BitmapFactory.decodeFile(file.absolutePath)
-                                bitMap.asImageBitmap()
-                            },
+                            rememberImagePainter(data = uri),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

@@ -1,5 +1,7 @@
 package com.example.propertymanagement.ui.views
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -78,6 +80,7 @@ object HomeDestination: NavigationDestination {
     override val route: String = "Home"
     override val titleRes: Int = R.string.units_screen
 }
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PropertyScreen(
     navigateToUnit: (unitId: String) -> kotlin.Unit = {id -> },
@@ -840,6 +843,7 @@ fun FilterBoxesPreview() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun ScrollableUnitsScreenCompactPreview(
