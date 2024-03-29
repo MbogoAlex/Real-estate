@@ -15,6 +15,7 @@ import com.example.propertymanagement.apiServices.model.Category
 import com.example.propertymanagement.apiServices.model.Location
 import com.example.propertymanagement.apiServices.model.PropertyDetails
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
+import com.example.propertymanagement.utils.LoggedInUserDetails
 import com.example.propertymanagement.utils.toLoggedInUserDetails
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -3,15 +3,18 @@ package com.example.propertymanagement.apiServices.network
 import com.example.propertymanagement.apiServices.model.CategoriesResponse
 import com.example.propertymanagement.apiServices.model.LoginDetails
 import com.example.propertymanagement.apiServices.model.LoginResponseStatus
+import com.example.propertymanagement.apiServices.model.Property
 import com.example.propertymanagement.apiServices.model.PropertyDetails
 import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
+import com.example.propertymanagement.apiServices.model.SingleProperty
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -35,4 +38,12 @@ interface PMangerApiService {
 
     @GET("api/category")
     suspend fun getCategories(@Header("Authorization") token: String): Response<CategoriesResponse>
+
+    @Headers("Content-Type: application/json")
+    @GET("api/property")
+    suspend fun getAllListings(@Header("Authorization") token: String): Response<Property>
+    @GET("api/property/propertyId={propertyId}")
+    suspend fun getSpecificProperty(@Header("Authorization") token: String, @Path("propertyId") propertyId: String): Response<SingleProperty>
+    @GET("api/property/categoryId={categoryId}")
+    suspend fun getPropertiesOfSpecificCategory(@Header("Authorization") token: String, @Path("categoryId") categoryId: String): Response<Property>
 }

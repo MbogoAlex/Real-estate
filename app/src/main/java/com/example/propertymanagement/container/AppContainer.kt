@@ -18,7 +18,7 @@ interface AppContainer {
 class DefaultContainer(context: Context): AppContainer {
     private val json = Json { ignoreUnknownKeys = true }
     private val baseUrl = "http://172.105.90.112:8080/pManager/"
-//    private val baseUrl = "http://192.168.246.6:8080/pManager/"
+//    private val baseUrl = "http://192.168.235.6:8080/pManager/"
     private val retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
@@ -35,7 +35,7 @@ class DefaultContainer(context: Context): AppContainer {
 
 class FormDataContainer(context: Context): AppContainer {
     private val baseUrl = "http://172.105.90.112:8080/pManager/"
-//    private val baseUrl = "http://192.168.246.6:8080/pManager/"
+//    private val baseUrl = "http://192.168.235.6:8080/pManager/"
     private val retrofit = Retrofit.Builder()
         .baseUrl(baseUrl)
         .addConverterFactory(GsonConverterFactory.create())

@@ -79,7 +79,8 @@ class LoginViewModel(
                         userFirstName = response.body()?.data!!.user.userInfo.firstName,
                         userLastName = response.body()?.data!!.user.userInfo.lastName,
                         userEmail = response.body()?.data!!.user.userInfo.email,
-                        userPhoneNumber = response.body()?.data!!.user.userInfo.phoneNumber
+                        userPhoneNumber = response.body()?.data!!.user.userInfo.phoneNumber,
+                        password = password!!
                     )
                 }!!
                 Log.i("USER_DETAILS", sfUserDetails.toString())

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -26,7 +27,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.propertymanagement.R
 import com.example.propertymanagement.datasource.Datasource
 import com.example.propertymanagement.model.PropertyUnit
@@ -98,13 +103,19 @@ fun UnitDetails(
     ) {
         Card {
             HorizontalPager(count = uiState.propertyUnit.images.size, state = pagerState) { page ->
-                Image(
-                    painter = painterResource(id = uiState.propertyUnit.images[page].image),
-                    contentDescription = stringResource(id = uiState.propertyUnit.name),
+                AsyncImage(
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(uiState.propertyUnit.images[page].url)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(id = R.drawable.loading_img),
+                    error = painterResource(id = R.drawable.ic_broken_image),
                     contentScale = ContentScale.Crop,
+                    contentDescription = uiState.propertyUnit.title,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .height(250.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
                 )
 
             }
@@ -118,44 +129,44 @@ fun UnitDetails(
         Row {
             Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
             Text(
-                text = stringResource(id = uiState.propertyUnit.location)
+                text = "${uiState.propertyUnit.location.county}, ${uiState.propertyUnit.location.address}"
             )
         }
 
         Text(
-            text = stringResource(id = uiState.propertyUnit.name),
+            text = uiState.propertyUnit.title,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = stringResource(id = uiState.propertyUnit.description),
+            text = uiState.propertyUnit.description,
             fontSize = 16.sp,
 
             )
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Seller: ${uiState.propertyUnit.seller.name}",
-            fontWeight = FontWeight.Bold
-        )
+//        Text(
+//            text = "Seller: ${uiState.propertyUnit.seller.name}",
+//            fontWeight = FontWeight.Bold
+//        )
         Spacer(modifier = Modifier.height(10.dp))
-        if(uiState.userRegistered) {
-            Text(
-                text = uiState.propertyUnit.seller.phoneNumber,
-                modifier = Modifier
-//                    .align(Alignment.End)
-            )
-        } else {
-            Button(
-                onClick = { /*TODO*/ },
-                modifier = Modifier
-
-            ) {
-                Text(
-                    text = "Show Contact",
-                )
-            }
-        }
+//        if(uiState.userRegistered) {
+//            Text(
+//                text = uiState.propertyUnit.seller.phoneNumber,
+//                modifier = Modifier
+////                    .align(Alignment.End)
+//            )
+//        } else {
+//            Button(
+//                onClick = { /*TODO*/ },
+//                modifier = Modifier
+//
+//            ) {
+//                Text(
+//                    text = "Show Contact",
+//                )
+//            }
+//        }
     }
 }
 @Composable

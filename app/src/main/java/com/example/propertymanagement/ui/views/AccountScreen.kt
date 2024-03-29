@@ -1,6 +1,5 @@
 package com.example.propertymanagement.ui.views
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
@@ -19,13 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -45,11 +39,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.propertymanagement.R
 import com.example.propertymanagement.ui.AppViewModelFactory
@@ -63,10 +55,9 @@ fun AccountScreen(
 ) {
     val context = LocalContext.current
     val viewModel: AccountScreenViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    val uiState by viewModel.accountScreenUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     val homeScreenViewModel: HomeScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelFactory.Factory)
-    val homeUiState by homeScreenViewModel.listingsUiState.collectAsState()
     var showDeleteDialog by remember {
         mutableStateOf(false)
     }
@@ -114,7 +105,7 @@ fun AccountScreen(
             AccountTopBar()
             Spacer(modifier = Modifier.height(20.dp))
             ProfileSection(
-                userName = uiState.name.takeIf { it.isEmpty() } ?: "Username"
+                userName = uiState.userDetails.name.takeIf { it.isNotEmpty() } ?: "Username"
             )
             Spacer(modifier = Modifier.height(20.dp))
             AccountOptions(
@@ -126,7 +117,7 @@ fun AccountScreen(
                 onDeleteAccountCardClicked = {  },
                 onLogoutCardClicked = { showDeleteDialog = true },
                 onLogInCardClicked = { showLoginAlert = true },
-                isRegistered = uiState.userId != null
+                isRegistered = uiState.userDetails.userId != null
             )
         }
     }

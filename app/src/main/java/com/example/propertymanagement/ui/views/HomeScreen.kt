@@ -1,6 +1,7 @@
 package com.example.propertymanagement.ui.views
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
@@ -58,6 +59,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +68,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.propertymanagement.R
+import com.example.propertymanagement.apiServices.model.Categories
+import com.example.propertymanagement.apiServices.model.Category
+import com.example.propertymanagement.apiServices.model.PropertyDataProperty
 import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.BottomTab
 import com.example.propertymanagement.model.PropertyUnit
@@ -86,15 +93,27 @@ fun PropertyScreen(
     navigateToUnit: (unitId: String) -> kotlin.Unit = {id -> },
     onBackButtonPressed: () -> Unit,
     navigateToRegistrationPage: () -> kotlin.Unit,
+    proceedToLogin: (phoneNumber: String, password: String) -> kotlin.Unit,
     onLoadHomeScreen: () -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-
+    val context = LocalContext.current
     val viewModel: HomeScreenViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    val listingsUiState by viewModel.listingsUiState.collectAsState()
-    val bottomBarUiState by viewModel.bottomBarUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
+    if(uiState.forceLogin) {
+        Toast.makeText(context, "You are not logged in", Toast.LENGTH_SHORT).show()
+        proceedToLogin(
+            uiState.userDetails.phoneNumber,
+            uiState.userDetails.password
+        )
+        viewModel.undoForcedLogin()
+    } else if(uiState.forceRegister) {
+        Toast.makeText(context, "You are not registered yet", Toast.LENGTH_SHORT).show()
+        navigateToRegistrationPage()
+        viewModel.undoForcedRegistration()
+    }
 
     var showRegisterUserAlert by remember {
         mutableStateOf(false)
@@ -136,10 +155,10 @@ fun PropertyScreen(
         )
 
     Column {
-        when(bottomBarUiState.bottomTab) {
+        when(uiState.bottomTab) {
             BottomTab.UNITS -> {
                 UnitsScreen(
-                    listingsUiState = listingsUiState,
+                    uiState = uiState,
 //                    onBackButtonPressed = { viewModel.onBackButtonClicked() },
 //                    showSelectedUnit = { viewModel.showUnitDetails(it) },
                     onTabClicked = { currentTab ->  },
@@ -148,12 +167,15 @@ fun PropertyScreen(
                         PropertyRooms.ONE
                         ) },
                     showContact = {
-                        showRegisterUserAlert = !listingsUiState.isRegistered
+                        showRegisterUserAlert = !uiState.isLoggedIn
                     },
                     navigateToUnit = {
                         navigateToUnit(it.toString())
                     },
-                    isRegistered = listingsUiState.isRegistered,
+                    isRegistered = uiState.isLoggedIn,
+                    filterListing = {
+                                    viewModel.fetchListingsOfSpecificCategory(it)
+                    },
                     modifier = Modifier
                         .weight(1f)
 
@@ -184,7 +206,7 @@ fun PropertyScreen(
         }
         BottomNavigationBar(
             navigationContentList = navigationContentList,
-            currentTab = bottomBarUiState.bottomTab,
+            currentTab = uiState.bottomTab,
             newNotification = true,
             numberOfNotifications = 3,
             onTabClicked = { currentTab ->  viewModel.switchTab(currentTab)},
@@ -197,7 +219,7 @@ fun PropertyScreen(
 
 @Composable
 fun UnitsScreen(
-    listingsUiState: ListingsUiState,
+    uiState: HomeScreenUiState,
     navigateToUnit: (unitId: Int) -> Unit,
 //    onBackButtonPressed: () -> kotlin.Unit,
 //    showSelectedUnit: (unitId: Int) -> kotlin.Unit,
@@ -205,6 +227,7 @@ fun UnitsScreen(
     filterUnits: (type: UnitType) -> kotlin.Unit,
     isRegistered: Boolean,
     showContact: () -> kotlin.Unit,
+    filterListing: (categoryId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember {
@@ -226,6 +249,7 @@ fun UnitsScreen(
         modifier = modifier
     ) {
         TopMostBar(
+            categories = uiState.listingsData.categories,
             searchLocation = "",
             onSearchIconClicked = {
                 showSearchField = true
@@ -234,13 +258,14 @@ fun UnitsScreen(
                 showSearchField = false
             },
             showSearchField = showSearchField,
+            filterListing = filterListing
         )
 
         ScrollableUnitsScreen(
             navigateToUnit = navigateToUnit,
 //            showSelectedUnit = showSelectedUnit,
             isRegistered = isRegistered,
-            listingsUiState = listingsUiState,
+            uiState = uiState,
             showContact = showContact,
             modifier = Modifier
                 .weight(1f)
@@ -252,9 +277,11 @@ fun UnitsScreen(
 
 @Composable
 fun TopMostBar(
+    categories: List<Category>,
     searchLocation: String,
     onSearchIconClicked: () -> kotlin.Unit,
     onStopSearchClicked: () -> kotlin.Unit,
+    filterListing: (categoryId: String) -> Unit,
     showSearchField: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -296,7 +323,10 @@ fun TopMostBar(
                 onSearchIconClicked = { onSearchIconClicked() }
             )
         }
-        FilterBoxes()
+        FilterBoxes(
+            categories = categories,
+            filterListing = filterListing
+        )
     }
 }
 
@@ -391,6 +421,8 @@ fun SearchField(
 
 @Composable
 fun FilterBoxes(
+    categories: List<Category>,
+    filterListing: (categoryId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -452,93 +484,32 @@ fun FilterBoxes(
             modifier = Modifier
                 .horizontalScroll(ScrollState(0))
         ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Cyan
-                ),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = Color.LightGray
-                ),
-                modifier = Modifier
-                    .padding(
-                        start = 5.dp,
-                    )
-            ) {
-                Text(
-                    text = "Rentals",
-                    fontWeight = FontWeight.Bold,
+            categories.forEach {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.Cyan
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = Color.LightGray
+                    ),
                     modifier = Modifier
-                        .widthIn(min = 90.dp)
-                        .padding(10.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(5.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
-                ),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = Color.LightGray
-                ),
-                modifier = Modifier
-                    .padding(
-                        start = 5.dp,
+                        .padding(
+                            start = 5.dp,
+                        )
+                        .clickable {
+                            filterListing(it.categoryId.toString())
+                        }
+                ) {
+                    Text(
+                        text = it.name,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .widthIn(min = 90.dp)
+                            .padding(10.dp)
                     )
-
-            ) {
-                Text(
-                    text = "Airbnbs",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .widthIn(min = 90.dp)
-                        .padding(10.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(5.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
-                ),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = Color.LightGray
-                ),
-                modifier = Modifier
-                    .padding(
-                        start = 5.dp,
-                    )
-            ) {
-                Text(
-                    text = "Airbnbs",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .widthIn(min = 90.dp)
-                        .padding(10.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(5.dp))
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
-                ),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = Color.LightGray
-                ),
-                modifier = Modifier
-                    .padding(
-                        start = 5.dp,
-                    )
-            ) {
-                Text(
-                    text = "Airbnbs",
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .widthIn(min = 90.dp)
-                        .padding(10.dp)
-                )
+                }
+                Spacer(modifier = Modifier.width(5.dp))
             }
         }
 
@@ -549,7 +520,7 @@ fun FilterBoxes(
 fun ScrollableUnitsScreen(
     navigateToUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
-    listingsUiState: ListingsUiState,
+    uiState: HomeScreenUiState,
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -557,11 +528,11 @@ fun ScrollableUnitsScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
-        items(listingsUiState.unitsToDisplay.size) { index ->
+        items(uiState.listingsData.listings.size) { index ->
             UnitItem(
                 navigateToUnit = navigateToUnit,
                 isRegistered = isRegistered,
-                unit = listingsUiState.unitsToDisplay[index],
+                unit = uiState.listingsData.listings[index],
                 showContact = showContact,
                 modifier = Modifier
 //                    .padding(
@@ -576,7 +547,7 @@ fun ScrollableUnitsScreen(
 fun UnitItem(
     navigateToUnit: (unitId: Int) -> kotlin.Unit = {id -> },
     isRegistered: Boolean,
-    unit: PropertyUnit,
+    unit: PropertyDataProperty,
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -591,17 +562,34 @@ fun UnitItem(
                 )
                 .clickable { navigateToUnit(unit.id) }
         ) {
-            Image(
-                painter = painterResource(id = unit.images.first { it.id == 1 }.image),
-                contentDescription = stringResource(id = unit.name),
-                contentScale = ContentScale.FillWidth,
-                modifier = Modifier
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
+            if(unit.images.isNotEmpty()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context = LocalContext.current)
+                        .data(unit.images.first().url)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(id = R.drawable.loading_img),
+                    error = painterResource(id = R.drawable.ic_broken_image),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = unit.title,
+                    modifier = Modifier
+                        .height(250.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.no_image_icon_coming_soon),
+                    contentDescription = "No image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .height(250.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = stringResource(id = unit.name),
+                text = unit.title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
@@ -622,10 +610,9 @@ fun UnitItem(
                         contentDescription = null,
                     )
                     Text(
-                        text = stringResource(id = unit.location),
+                        text = "${unit.location.county}, ${unit.location.address}",
                         style = MaterialTheme.typography.labelLarge
-
-                        )
+                    )
                 }
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowRight,
@@ -637,16 +624,10 @@ fun UnitItem(
                 )
             }
 //            Spacer(modifier = Modifier.height(10.dp))
-            if(isRegistered) {
-                Text(
-                    text = unit.seller.phoneNumber,
-                    modifier = Modifier
-
-                )
-            } else {
+            if(!isRegistered) {
                 Button(
                     onClick = {
-                           showContact()
+                        showContact()
 
                     },
                     modifier = Modifier
@@ -657,6 +638,26 @@ fun UnitItem(
                     )
                 }
             }
+//            if(isRegistered) {
+//                Text(
+//                    text = unit.phoneNumber,
+//                    modifier = Modifier
+//
+//                )
+//            } else {
+//                Button(
+//                    onClick = {
+//                           showContact()
+//
+//                    },
+//                    modifier = Modifier
+//
+//                ) {
+//                    Text(
+//                        text = "Show Contact",
+//                    )
+//                }
+//            }
             Spacer(modifier = Modifier.height(10.dp))
             Divider()
 //            Spacer(modifier = Modifier.height(10.dp))
@@ -817,9 +818,11 @@ fun SearchFieldPreview() {
 fun TopMostBarPreview() {
     PropertyManagementTheme {
         TopMostBar(
+            categories = emptyList(),
             searchLocation = "",
             onSearchIconClicked = {},
             onStopSearchClicked = {},
+            filterListing = {},
             showSearchField = false
         )
     }
@@ -839,7 +842,10 @@ fun TopBarTextAndImagePreview() {
 @Composable
 fun FilterBoxesPreview() {
     PropertyManagementTheme {
-        FilterBoxes()
+        FilterBoxes(
+            filterListing = {},
+            categories = emptyList()
+        )
     }
 }
 
@@ -853,6 +859,7 @@ fun ScrollableUnitsScreenCompactPreview(
         PropertyScreen(
             onBackButtonPressed = {},
             navigateToRegistrationPage = {},
+            proceedToLogin = {phoneNumber, password ->  },
             onLoadHomeScreen = {}
         )
     }

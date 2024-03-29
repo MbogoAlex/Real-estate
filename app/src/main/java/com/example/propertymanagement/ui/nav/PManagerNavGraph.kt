@@ -1,6 +1,8 @@
 package com.example.propertymanagement.ui.nav
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -18,6 +20,7 @@ import com.example.propertymanagement.ui.views.RegistrationScreenDestination
 import com.example.propertymanagement.ui.views.UnitDetailsScreen
 import com.example.propertymanagement.ui.views.UnitDetailsScreenDestination
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PManagerNavHost(
     navController: NavHostController,
@@ -36,6 +39,11 @@ fun PManagerNavHost(
                 onBackButtonPressed = { navController.navigateUp() },
                 navigateToRegistrationPage = {
                     navController.navigate(RegistrationScreenDestination.route)
+                },
+                proceedToLogin = { phoneNumber, password ->
+                                 navController.navigate(
+                                     "${LoginScreenDestination.route}/${phoneNumber}/${password}"
+                                 )
                 },
                 onLoadHomeScreen = {
                     navController.navigate(HomeDestination.route)
