@@ -10,6 +10,7 @@ import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
 import com.example.propertymanagement.apiServices.model.SingleProperty
+import com.example.propertymanagement.apiServices.model.SpecificCategoryProperty
 import com.example.propertymanagement.apiServices.network.PMangerApiService
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -26,7 +27,7 @@ interface PMangerApiRepository {
 
     suspend fun getSpecificProperty(token: String, propertyId: String): Response<SingleProperty>
 
-    suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<Property>
+    suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<SpecificCategoryProperty>
 }
 
 class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiService): PMangerApiRepository {
@@ -46,7 +47,7 @@ class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiSer
 
     override suspend fun getSpecificProperty(token: String, propertyId: String): Response<SingleProperty> = pManagerApiService.getSpecificProperty(token, propertyId)
 
-    override suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<Property> = pManagerApiService.getPropertiesOfSpecificCategory(
+    override suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<SpecificCategoryProperty> = pManagerApiService.getPropertiesOfSpecificCategory(
         token = token,
         categoryId = categoryId
     )

@@ -87,6 +87,17 @@ data class Image(
     val id: Int,
     val url: String
 )
+@Serializable
+data class SpecificCategoryProperty(
+    val statusCode: Int,
+    val message: String,
+    val data: SpecificPropertyData
+)
+
+@Serializable
+data class SpecificPropertyData (
+    val categories: List<PropertyDataProperty>
+)
 
 
 

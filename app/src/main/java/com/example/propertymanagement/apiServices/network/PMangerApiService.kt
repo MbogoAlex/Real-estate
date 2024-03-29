@@ -9,6 +9,7 @@ import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
 import com.example.propertymanagement.apiServices.model.SingleProperty
+import com.example.propertymanagement.apiServices.model.SpecificCategoryProperty
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -45,5 +46,5 @@ interface PMangerApiService {
     @GET("api/property/propertyId={propertyId}")
     suspend fun getSpecificProperty(@Header("Authorization") token: String, @Path("propertyId") propertyId: String): Response<SingleProperty>
     @GET("api/property/categoryId={categoryId}")
-    suspend fun getPropertiesOfSpecificCategory(@Header("Authorization") token: String, @Path("categoryId") categoryId: String): Response<Property>
+    suspend fun getPropertiesOfSpecificCategory(@Header("Authorization") token: String, @Path("categoryId") categoryId: String): Response<SpecificCategoryProperty>
 }

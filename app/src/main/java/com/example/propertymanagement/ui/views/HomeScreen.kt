@@ -52,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -159,12 +160,10 @@ fun PropertyScreen(
             BottomTab.UNITS -> {
                 UnitsScreen(
                     uiState = uiState,
-//                    onBackButtonPressed = { viewModel.onBackButtonClicked() },
-//                    showSelectedUnit = { viewModel.showUnitDetails(it) },
                     onTabClicked = { currentTab ->  },
-                    filterUnits = { viewModel.filterUnits(
-                        ListingsType.RENTALS,
-                        PropertyRooms.ONE
+                    filterListing = { categoryId -> viewModel.fetchListings(
+                        categoryId,
+                        uiState.userDetails.token
                         ) },
                     showContact = {
                         showRegisterUserAlert = !uiState.isLoggedIn
@@ -173,9 +172,6 @@ fun PropertyScreen(
                         navigateToUnit(it.toString())
                     },
                     isRegistered = uiState.isLoggedIn,
-                    filterListing = {
-                                    viewModel.fetchListingsOfSpecificCategory(it)
-                    },
                     modifier = Modifier
                         .weight(1f)
 
@@ -224,7 +220,6 @@ fun UnitsScreen(
 //    onBackButtonPressed: () -> kotlin.Unit,
 //    showSelectedUnit: (unitId: Int) -> kotlin.Unit,
     onTabClicked: (currentTab: BottomTab) -> kotlin.Unit,
-    filterUnits: (type: UnitType) -> kotlin.Unit,
     isRegistered: Boolean,
     showContact: () -> kotlin.Unit,
     filterListing: (categoryId: String) -> Unit,
@@ -425,6 +420,9 @@ fun FilterBoxes(
     filterListing: (categoryId: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var selectedBoxValue by rememberSaveable {
+        mutableStateOf(1)
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -485,34 +483,57 @@ fun FilterBoxes(
                 .horizontalScroll(ScrollState(0))
         ) {
             categories.forEach {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Cyan
-                    ),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = Color.LightGray
-                    ),
+                BoxMenuItem(
+                    selectedBoxValue = selectedBoxValue,
+                    boxValueName = it.name,
+                    boxValueId = it.categoryId.toString(),
                     modifier = Modifier
-                        .padding(
-                            start = 5.dp,
-                        )
                         .clickable {
+                            selectedBoxValue = it.categoryId
                             filterListing(it.categoryId.toString())
                         }
-                ) {
-                    Text(
-                        text = it.name,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .widthIn(min = 90.dp)
-                            .padding(10.dp)
-                    )
-                }
+                )
                 Spacer(modifier = Modifier.width(5.dp))
             }
         }
 
+    }
+}
+
+@Composable
+fun BoxMenuItem(
+    selectedBoxValue: Int,
+    boxValueName: String,
+    boxValueId: String,
+    modifier: Modifier = Modifier
+) {
+    var color = Color.Transparent
+    if(boxValueId.toInt() == selectedBoxValue) {
+        color = Color.Cyan
+    }
+
+    Card(
+
+        colors = CardDefaults.cardColors(
+            containerColor = color
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = Color.LightGray
+        ),
+        modifier = modifier
+            .padding(
+                start = 5.dp,
+            )
+
+    ) {
+        Text(
+            text = boxValueName,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .widthIn(min = 90.dp)
+                .padding(10.dp)
+        )
     }
 }
 

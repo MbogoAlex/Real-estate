@@ -75,10 +75,14 @@ class HomeScreenViewModel(
         viewModelScope.launch {
             pManagerSFRepository.userDetails.collect() {
                 userDetails = it.toLoggedInUserDetails()
+                _uiState.update {uiState ->
+                    uiState.copy(
+                        userDetails = userDetails
+                    )
+                }
                 Log.i("USER_DATA_DS", userDetails.toString())
                 token = userDetails.token
-                fetchAllListings(token)
-                getCategories(token)
+                getCategoriesAndFetchListings(token)
             }
         }
 
@@ -104,13 +108,32 @@ class HomeScreenViewModel(
         }
     }
 
-    fun filterUnits(listingsType: ListingsType, propertyRooms: PropertyRooms) {
-//        _listingsUiState.update {
-//            it.copy(
-//                listingsType = listingsType,
-//                propertyRooms = propertyRooms
-//            )
-//        }
+    fun fetchListings(categoryId: String, token: String) {
+        Log.i("CATEGORIZING_UNITS", "CATEGORIZING_UNITS: CATEGORY $categoryId, TOKEN: $token")
+        viewModelScope.launch {
+            try {
+                val response = pManagerApiRepository.getPropertiesOfSpecificCategory(
+                    token = "Bearer $token",
+                    categoryId = categoryId
+                )
+                if(response.isSuccessful) {
+                    Log.i("FETCHING_SUCCESSFUL", "${response.body()?.data?.categories!!}")
+                    listingsData = listingsData.copy(
+                        listings = response.body()?.data?.categories!!
+                    )
+                    _uiState.update {
+                        it.copy(
+                            listingsData = listingsData
+                        )
+                    }
+                } else {
+                    Log.i("FETCHING_UNSUCCESSFUL", "${response.body()?.data?.categories!!}")
+                }
+            } catch (e: Exception) {
+                Log.e("FAILED_TO_FETCH_LISTINGS_OF_ID $categoryId: ", e.toString())
+            }
+        }
+
     }
 
     fun switchTab(bottomTab: BottomTab) {
@@ -122,33 +145,9 @@ class HomeScreenViewModel(
     }
 
 
-    fun fetchAllListings(token: String) {
-        viewModelScope.launch {
-            try {
-                Log.d("AUTH_HEADER", "Bearer $token")
-                val response = pManagerApiRepository.getAllListings("Bearer $token")
 
-                if(response.isSuccessful) {
-                    Log.i("PROPERTIES_LOADED: ", response.body()?.data?.properties!!.toString())
-                    listingsData = listingsData.copy(
-                        listings = response.body()?.data?.properties!!
-                    )
-                    _uiState.update {
-                        it.copy(
-                            listingsData = listingsData
-                        )
-                    }
-                } else {
-                    Log.e("PROPERTIES_NOT_LOADED", response.toString())
-                }
 
-            } catch (e: Exception) {
-                Log.e("ERROR_FETCHING_PROPERTIES: ", e.toString())
-            }
-        }
-    }
-
-    fun getCategories(token: String) {
+    fun getCategoriesAndFetchListings(token: String) {
         Log.i("USER_TOKEN", "Bearer $token")
         viewModelScope.launch {
             try {
@@ -158,6 +157,8 @@ class HomeScreenViewModel(
                     listingsData = listingsData.copy(
                         categories = response.body()!!.data.categories
                     )
+                    val firstCategoryId = listingsData.categories[0].categoryId
+                    fetchListings(firstCategoryId.toString(), token)
                     _uiState.update {
                         it.copy(
                             listingsData = listingsData
@@ -184,11 +185,11 @@ class HomeScreenViewModel(
                     categoryId = categoryId
                 )
                 if(response.isSuccessful) {
-                    Log.i("PROPERTIES_LOADED: ", response.body()?.data?.properties!!.toString())
+                    Log.i("PROPERTIES_LOADED: ", response.body()?.data?.categories!!.toString())
                     _uiState.update {
                         it.copy(
                             listingsData = ListingsData(
-                                listings = response.body()?.data?.properties!!
+                                listings = response.body()?.data?.categories!!
                             )
                         )
                     }
