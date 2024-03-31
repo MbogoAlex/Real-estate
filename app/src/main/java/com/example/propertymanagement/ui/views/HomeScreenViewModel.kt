@@ -21,6 +21,13 @@ enum class ListingsType {
     AIRBNB
 }
 
+enum class ListingsLoadingState{
+    INITIAL,
+    LOADING,
+    SUCCESS,
+    FAILURE
+}
+
 enum class PropertyRooms {
     ONE,
     TWO,
@@ -37,7 +44,8 @@ data class HomeScreenUiState(
     val isLoggedIn: Boolean = false,
     val forceRegister: Boolean = false,
     val forceLogin: Boolean = false,
-    val userDetails: LoggedInUserDetails = LoggedInUserDetails()
+    val userDetails: LoggedInUserDetails = LoggedInUserDetails(),
+    var listingsLoadingState: ListingsLoadingState = ListingsLoadingState.INITIAL
 )
 
 
@@ -71,6 +79,11 @@ class HomeScreenViewModel(
     }
 
     fun loadStartUpDetails() {
+        _uiState.update {
+            it.copy(
+                listingsLoadingState = ListingsLoadingState.LOADING
+            )
+        }
         var token = ""
         viewModelScope.launch {
             pManagerSFRepository.userDetails.collect() {
@@ -152,6 +165,7 @@ class HomeScreenViewModel(
             try {
                 val response = pManagerApiRepository.getCategories("Bearer ${userDetails.token}")
                 if(response.isSuccessful) {
+
                     Log.i("FETCHING_CATEGORIES_STATUS", response.isSuccessful.toString())
                     listingsData = listingsData.copy(
                         categories = response.body()!!.data.categories
@@ -160,11 +174,18 @@ class HomeScreenViewModel(
                     fetchListings(firstCategoryId.toString(), token)
                     _uiState.update {
                         it.copy(
-                            listingsData = listingsData
+                            listingsData = listingsData,
+                            listingsLoadingState = ListingsLoadingState.SUCCESS
                         )
                     }
+
                     Log.i("CATEGORIES_FETCHED_ARE", "${_uiState.value.listingsData.categories}")
                 } else {
+                    _uiState.update {
+                        it.copy(
+                            listingsLoadingState = ListingsLoadingState.FAILURE
+                        )
+                    }
                     Log.i("FETCHING_CATEGORIES_STATUS", response.isSuccessful.toString())
                     handleLoginLogic()
                 }

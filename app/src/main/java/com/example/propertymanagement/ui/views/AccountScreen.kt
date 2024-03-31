@@ -51,6 +51,7 @@ import com.example.propertymanagement.ui.theme.PropertyManagementTheme
 fun AccountScreen(
     onLoadHomeScreen: () -> Unit,
     loadRegistrationScreen: () -> Unit,
+    loadLoginScreen: (phoneNumber: String, password: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -68,10 +69,14 @@ fun AccountScreen(
         AlertDialogTemplate(
             onDismissRequest = { showDeleteDialog = false },
             onConfirmRequest = {
+                loadLoginScreen(
+                    uiState.userDetails.phoneNumber,
+                    uiState.userDetails.password
+                )
                 viewModel.userLogout()
                 Toast.makeText(context, "You are logged out", Toast.LENGTH_SHORT).show()
                 showDeleteDialog = false
-                onLoadHomeScreen()
+//                onLoadHomeScreen()
             },
             confirmButtonText = "Log out",
             titleText = "Log out?",
@@ -384,7 +389,8 @@ fun ProfileScreenPreview() {
     PropertyManagementTheme {
         AccountScreen(
             onLoadHomeScreen = {},
-            loadRegistrationScreen = {}
+            loadRegistrationScreen = {},
+            loadLoginScreen = {phoneNumber, password ->  }
         )
     }
 }

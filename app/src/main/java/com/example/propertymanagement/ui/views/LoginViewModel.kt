@@ -64,6 +64,7 @@ class LoginViewModel(
     }
 
     fun loginUser() {
+        Log.i("LOGIN_WITH_VAUES: ", "phoneNumber: $phoneNumber, password: $password")
         _uiState.update {
             it.copy(
                 loginStatus = LoginStatus.LOADING
@@ -80,10 +81,10 @@ class LoginViewModel(
                         userLastName = response.body()?.data!!.user.userInfo.lastName,
                         userEmail = response.body()?.data!!.user.userInfo.email,
                         userPhoneNumber = response.body()?.data!!.user.userInfo.phoneNumber,
-                        password = password!!
+                        userPassword = password!!
                     )
                 }!!
-                Log.i("USER_DETAILS", sfUserDetails.toString())
+                Log.i("USER_DETAILS_ARE: ", "user: $sfUserDetails")
                 pManagerSFRepository.saveUserDetails(sfUserDetails)
                 _uiState.update {
                     it.copy(

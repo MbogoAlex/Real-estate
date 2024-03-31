@@ -64,4 +64,8 @@ interface PMangerApiService {
         @Header("Authorization") token: String,
         @Path("propertyId") propertyId: Int,
     ): Response<PropertyUpdateResponse>
+
+    suspend fun uploadProfilePicture(
+
+    )
 }

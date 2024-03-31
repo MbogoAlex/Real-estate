@@ -7,6 +7,7 @@ fun SFUserDetails.toLoggedInUserDetails(): LoggedInUserDetails = LoggedInUserDet
     userId = userId,
     name = "$userFirstName $userLastName",
     email  = userEmail,
+    password = userPassword,
     phoneNumber = userPhoneNumber,
     token = token,
 )

@@ -58,6 +58,11 @@ fun PManagerNavHost(
                                      "${LoginScreenDestination.route}/${phoneNumber}/${password}"
                                  )
                 },
+                navigateToLoginScreen = { phoneNumber, password ->
+                                        navController.navigate(
+                                            "${LoginScreenDestination.route}/${phoneNumber}/${password}"
+                                        )
+                },
                 onLoadHomeScreen = {
                     navController.navigate(HomeDestination.route)
                 },

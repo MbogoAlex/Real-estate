@@ -82,7 +82,7 @@ class RegistrationViewModel(
 
                 }
                 sfUserDetails = sfUserDetails.copy(
-                    password = userDetails.password
+                    userPassword = _uiState.value.userDetails.password
                 )
                 pManagerSFRepository.saveUserDetails(sfUserDetails)
                 Log.i("UI_UPDATE", _uiState.value.registrationSuccess.toString())

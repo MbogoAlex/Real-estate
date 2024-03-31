@@ -20,7 +20,7 @@ class PManagerSFRepository(
         private val USER_ID = intPreferencesKey("userId")
         private val USER_EMAIL = stringPreferencesKey("userEmail")
         private val USER_PHONE_NUMBER = stringPreferencesKey("userPhoneNumber")
-        private val PASSWORD = stringPreferencesKey("userPassword")
+        private val USER_PASSWORD = stringPreferencesKey("userPassword")
         private val USER_FIRST_NAME = stringPreferencesKey("userFirstName")
         private val USER_LAST_NAME = stringPreferencesKey("userLastName")
         private val TOKEN = stringPreferencesKey("token")
@@ -33,7 +33,7 @@ class PManagerSFRepository(
             preferences[USER_ID] = sfUserDetails.userId!!
             preferences[USER_EMAIL] = sfUserDetails.userEmail
             preferences[USER_PHONE_NUMBER] = sfUserDetails.userPhoneNumber
-            preferences[PASSWORD] = sfUserDetails.password
+            preferences[USER_PASSWORD] = sfUserDetails.userPassword
             preferences[USER_FIRST_NAME] = sfUserDetails.userFirstName
             preferences[USER_LAST_NAME] = sfUserDetails.userLastName
             preferences[TOKEN] = sfUserDetails.token
@@ -132,7 +132,7 @@ class PManagerSFRepository(
                 userId = it[USER_ID] ?: null,
                 userEmail = it[USER_EMAIL] ?: "",
                 userPhoneNumber = it[USER_PHONE_NUMBER] ?: "",
-                userPassword = it[PASSWORD] ?: "",
+                userPassword = it[USER_PASSWORD] ?: "",
                 userFirstName = it[USER_FIRST_NAME] ?: "",
                 userLastName = it[USER_LAST_NAME] ?: "",
                 token = it[TOKEN] ?: ""
@@ -153,7 +153,7 @@ class PManagerSFRepository(
         userPhoneNumber = userPhoneNumber,
         userFirstName = userFirstName,
         userLastName = userLastName,
-        password = userPassword,
+        userPassword = userPassword,
         token = token
 
     )

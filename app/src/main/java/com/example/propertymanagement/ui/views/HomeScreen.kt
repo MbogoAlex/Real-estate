@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedCard
@@ -111,6 +112,7 @@ fun PropertyScreen(
     navigateToAdvertDetails: (unitId: String) -> kotlin.Unit = {id -> },
     onBackButtonPressed: () -> Unit,
     navigateToRegistrationPage: () -> kotlin.Unit,
+    navigateToLoginScreen: (phoneNumber: String, password: String) -> Unit,
     navigateToCreatePropertyScreen: () -> Unit,
     proceedToLogin: (phoneNumber: String, password: String) -> kotlin.Unit,
     onLoadHomeScreen: () -> Unit,
@@ -218,6 +220,9 @@ fun PropertyScreen(
                 AccountScreen(
                     onLoadHomeScreen = onLoadHomeScreen,
                     loadRegistrationScreen = navigateToRegistrationPage,
+                    loadLoginScreen = { phoneNumber, password ->
+                                  navigateToLoginScreen(phoneNumber, password)
+                    },
                     modifier = Modifier
                         .weight(1f)
                 )
@@ -349,38 +354,6 @@ fun TopMostBar(
             filterListing = filterListing
         )
     }
-//    if(showFilterLocationsBox) {
-//        SearchField(
-//            value = location,
-//            onValueChange = {
-//                location = it
-//                filteredLocations = countiesListManipulation(it)
-//            },
-//            searchLocation = "Enter county name"
-//        )
-//        filteredLocations.forEach {
-//            Text(
-//                text = it,
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable {
-//                        location = it
-//                        selectedLocation = location
-//                        showFilterLocationsBox = false
-//                    }
-//                    .padding(
-//                        start = 10.dp,
-//                        top = 10.dp
-//                    )
-//            )
-//        }
-//    } else {
-//        FilterBoxes(
-//            categories = categories,
-//            filterListing = filterListing
-//        )
-//    }
-
 
 }
 
@@ -624,24 +597,49 @@ fun ScrollableUnitsScreen(
     modifier: Modifier = Modifier
 ) {
     val listings = uiState.listingsData.listings.reversed()
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-    ) {
-        items(listings) {
-            UnitItem(
-                navigateToUnit = navigateToUnit,
-                isRegistered = isRegistered,
-                unit = it,
-                showContact = showContact,
+
+    if(uiState.listingsLoadingState == ListingsLoadingState.LOADING) {
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+        ) {
+            items(10) {
+                UnitItemPlaceholder()
+            }
+
+        }
+    } else if(uiState.listingsLoadingState == ListingsLoadingState.SUCCESS) {
+        if(listings.isEmpty()) {
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Text(text = "No items for this category")
+            }
+        } else {
+            LazyColumn(
+                modifier = modifier
+                    .fillMaxSize()
+            ) {
+                items(listings) {
+                    UnitItem(
+                        navigateToUnit = navigateToUnit,
+                        isRegistered = isRegistered,
+                        unit = it,
+                        showContact = showContact,
+                        modifier = Modifier
 //                    .padding(
 //                        top = 10.dp
 //                    )
-            )
+                    )
+                }
+
+            }
         }
 
     }
+
 }
 
 @Composable
@@ -743,6 +741,75 @@ fun UnitItem(
             Divider()
 //            Spacer(modifier = Modifier.height(10.dp))
         }
+
+}
+
+@Composable
+fun UnitItemPlaceholder(
+    modifier: Modifier = Modifier
+) {
+
+    Column(
+        modifier = Modifier
+            .padding(
+                start = 10.dp,
+//                    top = 10.dp,
+                end = 10.dp,
+                bottom = 10.dp
+            )
+
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Gray
+            ),
+            modifier = Modifier
+                .height(250.dp)
+                .fillMaxWidth()
+        ) {
+
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = "Loading...",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+
+        ) {
+            Row {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                )
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        Divider()
+//            Spacer(modifier = Modifier.height(10.dp))
+    }
 
 }
 
@@ -1262,6 +1329,7 @@ fun ScrollableUnitsScreenCompactPreview(
             onBackButtonPressed = {},
             navigateToRegistrationPage = {},
             proceedToLogin = {phoneNumber, password ->  },
+            navigateToLoginScreen = {phoneNumber, password ->  },
             navigateToCreatePropertyScreen = {},
             onLoadHomeScreen = {}
         )

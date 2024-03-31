@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -35,8 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,6 +67,9 @@ fun LoginScreen(
     val viewModel: LoginViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val uiState by viewModel.uiState.collectAsState()
     var loginIndicator by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var passwordVisible by rememberSaveable {
         mutableStateOf(false)
     }
     when(uiState.loginStatus) {
@@ -118,6 +128,10 @@ fun LoginScreen(
                                 )
                                 viewModel.updateUiState()
                             },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Next,
+                                keyboardType = KeyboardType.Password
+                            ),
                             modifier = Modifier
 
                                 .fillMaxWidth()
@@ -135,6 +149,18 @@ fun LoginScreen(
                                 )
                                 viewModel.updateUiState()
                             },
+                            visualTransformation = if(passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                val eyeIcon = if(passwordVisible) R.drawable.visibity_on else
+                                    R.drawable.visibility_off
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(painter = painterResource(id = eyeIcon), contentDescription = null)
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                imeAction = ImeAction.Done,
+                                keyboardType = KeyboardType.Password
+                            ),
                             modifier = Modifier
 
                                 .fillMaxWidth()
