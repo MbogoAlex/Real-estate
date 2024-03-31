@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.propertymanagement.SFServices.PManagerSFRepository
 import com.example.propertymanagement.apiServices.model.Image
 import com.example.propertymanagement.apiServices.model.Location
+import com.example.propertymanagement.apiServices.model.Seller
 import com.example.propertymanagement.apiServices.model.SingleProperty
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import com.example.propertymanagement.datasource.Datasource
@@ -22,12 +23,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 data class PropertyDetails (
     val title: String = "",
     val description: String = "",
+    val price: Double = 0.0,
     val images: List<PropertyImage>,
-    val location: PropertyLocation
+    val location: PropertyLocation,
+    val features: List<String> = emptyList(),
+    val rooms: Int = 0,
+    val seller: PropSeller = PropSeller()
 )
 
 data class PropertyImage(
@@ -35,6 +41,24 @@ data class PropertyImage(
     val url: String = ""
 )
 
+
+data class PropSeller (
+    val userId: Int = 0,
+    val email: String = "",
+    val phoneNumber: String = "",
+    val fname: String = "",
+    val lname: String = "",
+    val mname: String = ""
+)
+
+fun Seller.toPropSeller(): PropSeller = PropSeller(
+    userId = userId,
+    email = email,
+    phoneNumber = phoneNumber,
+    fname = fname,
+    lname = lname,
+    mname = mname
+)
 fun Image.toPropertyImage(): PropertyImage = PropertyImage(
     id = id,
     url = url
@@ -129,8 +153,12 @@ class UnitsDetailsScreenViewModel(
                             PropertyDetails(
                                 title = response.body()?.data?.property?.title!!,
                                 description = response.body()?.data?.property?.description!!,
+                                price = response.body()?.data?.property?.price!!,
                                 images = it,
-                                location = it1
+                                location = it1,
+                                features = response.body()?.data?.property?.features!!,
+                                rooms = response.body()?.data?.property?.rooms!!,
+                                seller = response.body()?.data?.property?.user!!.toPropSeller()
                             )
                         }
                     }

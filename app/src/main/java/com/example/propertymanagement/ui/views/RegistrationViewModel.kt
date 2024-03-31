@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.propertymanagement.SFServices.PManagerSFRepository
+import com.example.propertymanagement.SFServices.model.SFUserDetails
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.networkRepository.PMangerApiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +37,10 @@ data class RegistrationScreenUiState(
     val buttonEnabled: Boolean,
     val registrationStatus: RegistrationStatus
 )
-class RegistrationViewModel(private val pMangerApiRepository: PMangerApiRepository): ViewModel() {
+class RegistrationViewModel(
+    private val pMangerApiRepository: PMangerApiRepository,
+    private val pManagerSFRepository: PManagerSFRepository
+): ViewModel() {
     var userDetails by mutableStateOf(UserDetails("", "", "", "", "", ""))
     private val _uiState = MutableStateFlow(value = RegistrationScreenUiState(
         buttonEnabled = checkIfFieldsAreFilled(),
@@ -43,6 +48,7 @@ class RegistrationViewModel(private val pMangerApiRepository: PMangerApiReposito
         registrationStatus = RegistrationStatus.START
     ))
     val uiState: StateFlow<RegistrationScreenUiState> = _uiState.asStateFlow()
+    var sfUserDetails: SFUserDetails = SFUserDetails(0, "", "", "", "", "", "")
 
     fun checkIfFieldsAreFilled(): Boolean {
         return !(userDetails.email.isEmpty() || userDetails.firstName.isEmpty() || userDetails.lastName.isEmpty() || userDetails.phoneNumber.isEmpty() || userDetails.password.isEmpty())
@@ -73,7 +79,12 @@ class RegistrationViewModel(private val pMangerApiRepository: PMangerApiReposito
                         registrationSuccess = true,
                         registrationStatus = RegistrationStatus.SUCCESS
                     )
+
                 }
+                sfUserDetails = sfUserDetails.copy(
+                    password = userDetails.password
+                )
+                pManagerSFRepository.saveUserDetails(sfUserDetails)
                 Log.i("UI_UPDATE", _uiState.value.registrationSuccess.toString())
             } else {
                 _uiState.update {

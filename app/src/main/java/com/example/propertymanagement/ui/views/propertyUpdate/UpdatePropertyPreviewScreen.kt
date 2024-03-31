@@ -1,4 +1,4 @@
-package com.example.propertymanagement.ui.views
+package com.example.propertymanagement.ui.views.propertyUpdate
 
 import android.content.Context
 import android.net.Uri
@@ -39,51 +39,56 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.propertymanagement.R
+import com.example.propertymanagement.apiServices.model.Image
 import com.example.propertymanagement.ui.AppViewModelFactory
-import com.example.propertymanagement.ui.nav.NavigationDestination
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
+import com.example.propertymanagement.ui.views.CreateNewPropertyViewModel
+import com.example.propertymanagement.ui.views.FeaturesInputFieldsUiState
+import com.example.propertymanagement.ui.views.GeneralPropertyDataUiState
+import com.example.propertymanagement.ui.views.GeneralPropertyDetails
+import com.example.propertymanagement.ui.views.ImagesUiState
+import com.example.propertymanagement.ui.views.UploadStatus
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import java.io.File
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CreatePropertyPreviewScreen(
+fun UpdatePropertyPreviewScreen(
     navigateToUserAdvertisedProperties: () -> Unit,
     context: Context,
     categoryId: Int,
-    viewModel: CreateNewPropertyViewModel,
-    generalPropertyDetails: GeneralPropertyDetails,
-    featuresInputFieldsUiState: FeaturesInputFieldsUiState,
-    imagesUiState: ImagesUiState,
+    viewModel: PropertyUpdateScreenViewModel,
     onBackButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
 
-    if(uiState.saveSuccessful) {
+    if(uiState.updateStatus == UpdateStatus.DONE) {
         navigateToUserAdvertisedProperties()
-        Toast.makeText(LocalContext.current, "Property uploaded", Toast.LENGTH_SHORT).show()
+        Toast.makeText(LocalContext.current, "Property updated", Toast.LENGTH_SHORT).show()
         viewModel.stopLoadingToPreviousPage()
 
+    } else if (uiState.updateStatus == UpdateStatus.FAIL) {
+        Toast.makeText(LocalContext.current, "Failed to update property", Toast.LENGTH_SHORT).show()
+        viewModel.initializeStatus()
     }
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(10.dp)
     ) {
-        CreatePropertyPreviewTopBar(
+        UpdatePropertyPreviewTopBar(
             uiState = uiState,
             onBackButtonClicked = onBackButtonClicked,
             onSaveButtonClicked = {
-                viewModel.uploadProperty(
-                    categoryId = categoryId,
-                    context = context
-                )
+                Toast.makeText(context, "This feature will be added soon", Toast.LENGTH_SHORT).show()
+//                viewModel.updateProperty(
+////                    categoryId = categoryId,
+////                    context = context
+//                )
             }
         )
         Spacer(modifier = Modifier.height(10.dp))
@@ -93,12 +98,10 @@ fun CreatePropertyPreviewScreen(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             ImageSlider(
-                generalPropertyDetails = generalPropertyDetails,
-                images = imagesUiState.images
+                images = uiState.generalPropertyDetails.images
             )
-            NewPropertyDetails(
-                featuresInputFieldsUiState = featuresInputFieldsUiState,
-                generalPropertyDetails = generalPropertyDetails
+            UpdatedPropertyDetails(
+                uiState = uiState,
             )
         }
     }
@@ -107,8 +110,7 @@ fun CreatePropertyPreviewScreen(
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ImageSlider(
-    generalPropertyDetails: GeneralPropertyDetails,
-    images: List<Uri>,
+    images: List<Image>,
     modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
@@ -116,7 +118,7 @@ fun ImageSlider(
         Card {
             HorizontalPager(count = images.size, state = pagerState) { page ->
                 Image(
-                    painter = rememberImagePainter(data = images[page]),
+                    painter = rememberImagePainter(data = images[page].url),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -136,20 +138,19 @@ fun ImageSlider(
 }
 
 @Composable
-fun NewPropertyDetails(
-    featuresInputFieldsUiState: FeaturesInputFieldsUiState,
-    generalPropertyDetails: GeneralPropertyDetails,
+fun UpdatedPropertyDetails(
+    uiState: PropertyUpdateUiState,
     modifier: Modifier = Modifier
 ) {
     Column {
         Row {
             Text(
-                text = "${generalPropertyDetails.type}: ",
+                text = "${uiState.generalPropertyDetails.type}: ",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
             Text(
-                text = "${generalPropertyDetails.rooms} rooms",
+                text = "${uiState.generalPropertyDetails.rooms} rooms",
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
@@ -157,25 +158,25 @@ fun NewPropertyDetails(
 
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "${generalPropertyDetails.county}, ${generalPropertyDetails.address}",
+            text = "${uiState.generalPropertyDetails.county}, ${uiState.generalPropertyDetails.address}",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Available from, ${generalPropertyDetails.date}",
+            text = "Available from, ${uiState.generalPropertyDetails.date}",
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = generalPropertyDetails.title,
+            text = uiState.generalPropertyDetails.title,
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = generalPropertyDetails.description,
+            text = uiState.generalPropertyDetails.description,
             fontSize = 16.sp
         )
         Spacer(modifier = Modifier.height(20.dp))
@@ -184,15 +185,15 @@ fun NewPropertyDetails(
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(10.dp))
-        featuresInputFieldsUiState.features.forEachIndexed { index, feature ->
+        uiState.generalPropertyDetails.features.forEachIndexed { index, feature ->
             Text(text = "${index + 1}. $feature")
         }
     }
 }
 
 @Composable
-fun CreatePropertyPreviewTopBar(
-    uiState: GeneralPropertyDataUiState,
+fun UpdatePropertyPreviewTopBar(
+    uiState: PropertyUpdateUiState,
     onBackButtonClicked: () -> Unit,
     onSaveButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
@@ -210,12 +211,12 @@ fun CreatePropertyPreviewTopBar(
             )
         }
         Text(text = "Preview")
-        if(uiState.uploadStatus == UploadStatus.START) {
+        if(uiState.updateStatus == UpdateStatus.START) {
             CircularProgressIndicator()
         } else {
             TextButton(onClick = { onSaveButtonClicked() }) {
                 Row {
-                    Text(text = "Publish")
+                    Text(text = "Update")
                     Icon(
                         painter = painterResource(id = R.drawable.save),
                         contentDescription = null
@@ -231,8 +232,8 @@ fun CreatePropertyPreviewTopBar(
 @Composable
 fun CreatePropertyPreviewTopBarPreview() {
     PropertyManagementTheme {
-        CreatePropertyPreviewTopBar(
-            uiState = GeneralPropertyDataUiState(),
+        UpdatePropertyPreviewTopBar(
+            uiState = PropertyUpdateUiState(),
             onBackButtonClicked = {},
             onSaveButtonClicked = {}
         )
@@ -244,7 +245,7 @@ fun CreatePropertyPreviewTopBarPreview() {
 @Composable
 fun CreatePropertyPreviewScreenPreview() {
     val context = LocalContext.current
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
+    val viewModel: PropertyUpdateScreenViewModel = viewModel(factory = AppViewModelFactory.Factory)
     val generalPropertyDetails = GeneralPropertyDetails(
         type = "Arbnb",
         rooms = "2",
@@ -260,13 +261,10 @@ fun CreatePropertyPreviewScreenPreview() {
         images = mutableListOf(),
     )
     PropertyManagementTheme {
-        CreatePropertyPreviewScreen(
+        UpdatePropertyPreviewScreen(
             context = context,
             categoryId = 1,
             viewModel = viewModel,
-            generalPropertyDetails = generalPropertyDetails,
-            featuresInputFieldsUiState = FeaturesInputFieldsUiState(),
-            imagesUiState = ImagesUiState(),
             onBackButtonClicked = {},
             navigateToUserAdvertisedProperties = {}
         )

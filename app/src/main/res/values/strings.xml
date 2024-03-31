@@ -28,5 +28,9 @@
     <string name="registration_screen">Registration screen</string>
     <string name="login_screen">Login screen</string>
     <string name="unit_details_screen">Unit details screen</string>
+    <string name="create_property_screen">Create property screen</string>
+    <string name="my_units_adverts">My Units Adverts</string>
+    <string name="advert_details_screen">Advert Details Screen</string>
+    <string name="property_update_screen">Property Update Screen</string>
 
 </resources>

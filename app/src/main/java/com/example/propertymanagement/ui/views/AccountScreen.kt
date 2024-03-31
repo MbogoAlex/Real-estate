@@ -105,6 +105,7 @@ fun AccountScreen(
             AccountTopBar()
             Spacer(modifier = Modifier.height(20.dp))
             ProfileSection(
+
                 userName = uiState.userDetails.name.takeIf { it.isNotEmpty() } ?: "Username"
             )
             Spacer(modifier = Modifier.height(20.dp))

@@ -1,4 +1,4 @@
-package com.example.propertymanagement.ui.views
+package com.example.propertymanagement.ui.views.propertyUpdate
 
 import android.content.Context
 import android.net.Uri
@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,7 +32,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
@@ -48,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,210 +81,192 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-object CreateNewPropertyScreenDestination: NavigationDestination {
-    override val route: String = "create-property"
-    override val titleRes: Int = R.string.create_property_screen
+object PropertyUpdateScreenDestination: NavigationDestination {
+    override val route: String = "property-update"
+    override val titleRes: Int = R.string.property_update_screen
+    val propertyId: String = "propertyId"
+
+    val routeWithArgs = "$route/{$propertyId}"
 }
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CreateNewPropertyScreen(
+fun PropertyUpdateScreen(
     navigateToUserAdvertisedProperties: () -> Unit,
-    onBackButtonClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
-    val imagesUiState by viewModel.imagesUiState.collectAsState()
-    val featuresInputFieldsUiState by viewModel.featuresInputFieldsUiState.collectAsState()
+    val viewModel: PropertyUpdateScreenViewModel = viewModel(
+        factory = AppViewModelFactory.Factory
+    )
+    val uiState by viewModel.uiState.collectAsState()
     var showPreview by rememberSaveable {
         mutableStateOf(false)
     }
-
-
     if(showPreview) {
-        CreatePropertyPreviewScreen(
+        UpdatePropertyPreviewScreen(
+            navigateToUserAdvertisedProperties = { navigateToUserAdvertisedProperties() },
             context = context,
             categoryId = uiState.generalPropertyDetails.categoryId,
             viewModel = viewModel,
-            generalPropertyDetails = uiState.generalPropertyDetails,
-            featuresInputFieldsUiState = featuresInputFieldsUiState,
-            imagesUiState = imagesUiState,
-            navigateToUserAdvertisedProperties = navigateToUserAdvertisedProperties,
-            onBackButtonClicked = {
-                showPreview = false
-            }
-        )
+            onBackButtonClicked = { showPreview = false })
     } else {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-
-        ) {
-
-            UploadPropertyTopBar()
-            Spacer(modifier = Modifier.height(5.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = 10.dp,
-                        end = 10.dp
-                    )
-            ) {
-                Text(
-                    text = "Advertise your property",
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                TextButton(onClick = {
-                    showPreview = true
-                }) {
-                    Row {
-                        Text(text = "Preview")
-                        Icon(
-                            painter = painterResource(id = R.drawable.preview),
-                            contentDescription = null
-                        )
-                    }
-                }
+        Scaffold(
+            topBar = {
+                UpdatePropertyTopBar()
             }
-            Spacer(modifier = Modifier.height(5.dp))
+        ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-                    .verticalScroll(rememberScrollState())
+                    .padding(it)
             ) {
-                Card() {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = 10.dp,
+                                end = 10.dp
+                            )
+                    ) {
+                        Text(
+                            text = "Update your property",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = {
+                            showPreview = true
+                        }) {
+                            Row {
+                                Text(text = "Preview")
+                                Icon(
+                                    painter = painterResource(id = R.drawable.preview),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                    // edit below
+
                     Column(
                         modifier = Modifier
-                            .padding(20.dp)
+                            .fillMaxSize()
+                            .padding(10.dp)
+                            .verticalScroll(rememberScrollState())
                     ) {
-                        Row {
-                            PropertyTypeSelection(
-                                viewModel = viewModel,
+                        Card() {
+                            Column(
                                 modifier = Modifier
-                                    .weight(1f)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            NumberOfRoomsSelection(
-                                viewModel = viewModel,
-                                modifier = Modifier
-                                    .weight(1f)
-                            )
-                        }
-                        //title field
-                        InputField(
-                            label = "Title",
-                            value = uiState.generalPropertyDetails.title,
-                            onValueChanged = {
-                                viewModel.generalPropertyDetails =
-                                    viewModel.generalPropertyDetails.copy(
-                                        title = it
+                                    .padding(20.dp)
+                            ) {
+                                Row {
+                                    PropertyTypeSelection(
+                                        viewModel = viewModel,
+                                        modifier = Modifier
+                                            .weight(1f)
                                     )
-                                viewModel.updateGeneralUiState()
-                            },
-                            keyboardType = KeyboardType.Text,
-                            maxLines = 2,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                        //description field
-                        InputField(
-                            label = "Description",
-                            value = uiState.generalPropertyDetails.description,
-                            onValueChanged = {
-                                viewModel.generalPropertyDetails =
-                                    viewModel.generalPropertyDetails.copy(
-                                        description = it
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    NumberOfRoomsSelection(
+                                        viewModel = viewModel,
+                                        modifier = Modifier
+                                            .weight(1f)
                                     )
-                                viewModel.updateGeneralUiState()
-                            },
-                            keyboardType = KeyboardType.Text,
-                            maxLines = 5,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                        AvailabilitySelection(
-                            viewModel = viewModel
-                        )
-                        LocationSelection(
-                            addressValue = uiState.generalPropertyDetails.address,
-                            countyValue = uiState.generalPropertyDetails.county,
-                            latitudeValue = "",
-                            longitudeValue = "",
-                            onAddressValueChanged = {
-                                viewModel.generalPropertyDetails =
-                                    viewModel.generalPropertyDetails.copy(
-                                        address = it
-                                    )
-                                viewModel.updateGeneralUiState()
-                            },
-                            onLatitudeValueChanged = {},
-                            onLongitudeValueChanged = {},
-                            onCountyValueChanged = {
-                                viewModel.generalPropertyDetails =
-                                    viewModel.generalPropertyDetails.copy(
-                                        county = it
-                                    )
-                                viewModel.updateGeneralUiState()
+                                }
+                                //title field
+                                InputField(
+                                    label = "Title",
+                                    value = uiState.generalPropertyDetails.title,
+                                    onValueChanged = {title ->
+
+                                        viewModel.updatePropertyTitle(title = title)
+                                    },
+                                    keyboardType = KeyboardType.Text,
+                                    maxLines = 2,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                                //description field
+                                InputField(
+                                    label = "Description",
+                                    value = uiState.generalPropertyDetails.description,
+                                    onValueChanged = {description ->
+                                        viewModel.updatePropertyDescription(description = description)
+                                    },
+                                    keyboardType = KeyboardType.Text,
+                                    maxLines = 5,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                                AvailabilitySelection(
+                                    viewModel = viewModel
+                                )
+                                LocationSelection(
+                                    addressValue = uiState.generalPropertyDetails.address,
+                                    countyValue = uiState.generalPropertyDetails.county,
+                                    latitudeValue = "",
+                                    longitudeValue = "",
+                                    onAddressValueChanged = {address ->
+                                        viewModel.updatePropertyAddress(address = address)
+                                    },
+                                    onLatitudeValueChanged = {},
+                                    onLongitudeValueChanged = {},
+                                    onCountyValueChanged = {county ->
+                                        viewModel.updatePropertyCounty(county)
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = "Price",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                InputField(
+                                    label = "Price",
+                                    value = uiState.generalPropertyDetails.price,
+                                    onValueChanged = {price ->
+                                        viewModel.updatePropertyPrice(price)
+                                    },
+                                    keyboardType = KeyboardType.Number,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = "Add features",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                PropertyFeatures(
+                                    viewModel = viewModel
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text(
+                                    text = "Upload photos",
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+//                            ImagesUpload(
+//                                context = context,
+//                                viewModel = viewModel
+//                            )
                             }
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Price",
-                            fontWeight = FontWeight.Bold
-                        )
-                        InputField(
-                            label = "Price",
-                            value = uiState.generalPropertyDetails.price,
-                            onValueChanged = {
-                                viewModel.generalPropertyDetails =
-                                    viewModel.generalPropertyDetails.copy(
-                                        price = it
-                                    )
-                                viewModel.updateGeneralUiState()
-                            },
-                            keyboardType = KeyboardType.Number,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Add features",
-                            fontWeight = FontWeight.Bold
-                        )
-                        PropertyFeatures(
-                            viewModel = viewModel
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Text(
-                            text = "Upload photos",
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        ImagesUpload(
-                            context = context,
-                            viewModel = viewModel
-                        )
+                        }
                     }
                 }
             }
         }
-
     }
 
 }
 
 @Composable
 fun PropertyTypeSelection(
-    viewModel: CreateNewPropertyViewModel,
+    viewModel: PropertyUpdateScreenViewModel,
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val propertyTypes = uiState.categories
     var expanded by remember {
         mutableStateOf(false)
@@ -337,12 +317,10 @@ fun PropertyTypeSelection(
                         onClick = {
                             selectedType = type.name
                             expanded = false
-                            viewModel.generalPropertyDetails =
-                                viewModel.generalPropertyDetails.copy(
-                                    categoryId = type.id,
-                                    type = type.name
-                                )
-                            viewModel.updateGeneralUiState()
+                            viewModel.updatePropertyCategory(
+                                categoryId = type.id,
+                                type = type.name
+                            )
                         }
                     )
                     Divider()
@@ -357,10 +335,10 @@ fun PropertyTypeSelection(
 
 @Composable
 fun NumberOfRoomsSelection(
-    viewModel: CreateNewPropertyViewModel,
+    viewModel: PropertyUpdateScreenViewModel,
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val numOfRooms = listOf<String>("1", "2", "3", "4", "5", "6")
     var expanded by remember {
         mutableStateOf(false)
@@ -417,11 +395,9 @@ fun NumberOfRoomsSelection(
                         onClick = {
                             selectedType = num
                             expanded = false
-                            viewModel.generalPropertyDetails =
-                                viewModel.generalPropertyDetails.copy(
-                                    rooms = num
-                                )
-                            viewModel.updateGeneralUiState()
+                            viewModel.updatePropertyRooms(
+                                rooms = num
+                            )
                         }
                     )
                     Divider()
@@ -444,7 +420,7 @@ fun InputField(
     OutlinedTextField(
         value = value,
         label = {
-                Text(text = label)
+            Text(text = label)
         },
         onValueChange = {
             onValueChanged(it)
@@ -463,12 +439,12 @@ fun InputField(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AvailabilitySelection(
-    viewModel: CreateNewPropertyViewModel,
+    viewModel: PropertyUpdateScreenViewModel,
     modifier: Modifier = Modifier
 ) {
     val inputDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val outputDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val uiState by viewModel.generalPropertyDataUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val options = listOf<String>("Now", "Pick date")
     var selected by remember {
         mutableStateOf(options[0])
@@ -487,7 +463,7 @@ fun AvailabilitySelection(
             }
         }
     )
-    val selectedDate = state.selectedDateMillis?.let { 
+    val selectedDate = state.selectedDateMillis?.let {
         convertMillisToDate(it)
     }
     val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -528,31 +504,24 @@ fun AvailabilitySelection(
 
         if(selected == "Now") {
             Text(text = "Available from: ${uiState.generalPropertyDetails.date}")
-            viewModel.generalPropertyDetails = viewModel.generalPropertyDetails.copy(
-                date = formattedDate
-            )
-            Log.i("FORMATTED_DATE", formattedDate)
-            viewModel.updateGeneralUiState()
+            viewModel.updateAvailabilityDate(date = formattedDate)
+
         } else {
             if(openDialog) {
                 DatePickerDialog(
                     onDismissRequest = { openDialog = false },
                     confirmButton = {
-                                    TextButton(onClick = {
-                                        openDialog = false
-                                        availableDate = selectedDate!!
-                                        val parsedDate = inputDateFormat.parse(availableDate)
-                                        val formattedDate = outputDateFormat.format(parsedDate)
-                                        viewModel.generalPropertyDetails =
-                                            viewModel.generalPropertyDetails.copy(
-                                                date = formattedDate
-                                            )
-                                        viewModel.updateGeneralUiState()
+                        TextButton(onClick = {
+                            openDialog = false
+                            availableDate = selectedDate!!
+                            val parsedDate = inputDateFormat.parse(availableDate)
+                            val formattedDate = outputDateFormat.format(parsedDate)
+                            viewModel.updateAvailabilityDate(date = formattedDate)
 
-                                        Log.i("FORMATTED_DATE", formattedDate)
-                                    }) {
-                                        Text(text = "OK")
-                                    }
+                            Log.i("FORMATTED_DATE", formattedDate)
+                        }) {
+                            Text(text = "OK")
+                        }
                     },
                     dismissButton = {
                         TextButton(onClick = { openDialog = false }) {
@@ -633,17 +602,17 @@ fun LocationSelection(
 
 @Composable
 fun PropertyFeatures(
-    viewModel: CreateNewPropertyViewModel,
+    viewModel: PropertyUpdateScreenViewModel,
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.featuresInputFieldsUiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
 
     ) {
-        uiState.features.forEachIndexed { index, it ->
+        uiState.generalPropertyDetails.features.forEachIndexed { index, it ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -654,8 +623,10 @@ fun PropertyFeatures(
                     label = "Feature ${index + 1}",
                     value = it,
                     onValueChanged = {feature ->
-                                     viewModel.features[index] = feature
-                        viewModel.updateFeaturesFieldUiState();
+                        viewModel.updateFeatureField(
+                            index = index,
+                            value = feature
+                        )
                     },
                     maxLines = 1,
                     modifier = Modifier
@@ -681,7 +652,7 @@ fun PropertyFeatures(
                 viewModel.addNewField()
             },
             modifier = Modifier
-                    .align(Alignment.End)
+                .align(Alignment.End)
         )
         {
             Icon(
@@ -692,8 +663,90 @@ fun PropertyFeatures(
     }
 }
 
+//@Composable
+//fun ImagesUpload(
+//    context: Context,
+//    viewModel: PropertyUpdateScreenViewModel,
+//    modifier: Modifier = Modifier
+//) {
+//
+//
+//    val uiState by viewModel.imagesUiState.collectAsState()
+//
+//    var imageUrl by remember {
+//        mutableStateOf<Uri?>(null)
+//    }
+//    var images by remember {
+//        mutableStateOf<List<Uri>>(listOf()) // Initialize images list as empty
+//    }
+//    val cacheDir = context.cacheDir
+//    val galleryLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.GetContent(),
+//        onResult = { uri ->
+//            uri?.let {
+//                imageUrl = it
+//                images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
+//
+//                // Open an input stream from the content resolver associated with the URI
+//                viewModel.images.add(uri)
+//                viewModel.updateImagesUiState()
+//            }
+//        }
+//    )
+//
+//
+//
+//
+//    Column {
+//        TextButton(onClick = { galleryLauncher.launch("image/*") }) {
+//            Row {
+//                Text(text = "Add images")
+//                Icon(
+//                    painter = painterResource(id = R.drawable.file_upload),
+//                    contentDescription = "Add image"
+//                )
+//            }
+//        }
+//        Row(
+//            modifier = Modifier
+//                .horizontalScroll(rememberScrollState())
+//        ) {
+//            uiState.images.forEachIndexed { index, uri ->
+//                Row {
+//                    Card(
+//                        modifier = Modifier
+//                            .height(100.dp)
+//                    ) {
+//                        Image(
+//                            rememberImagePainter(data = uri),
+//                            contentDescription = null,
+//                            contentScale = ContentScale.Crop,
+//                            modifier = Modifier
+//                                .padding(
+//                                    top = 5.dp,
+//                                    end = 3.dp,
+//                                    bottom = 5.dp
+//                                )
+//                                .size(100.dp)
+//                        )
+//                    }
+//                    IconButton(onClick = {
+//                        viewModel.images.removeAt(index)
+//                        viewModel.updateImagesUiState()
+//                    }) {
+//                        Icon(
+//                            imageVector = Icons.Default.Close,
+//                            contentDescription = null
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
-fun UploadPropertyTopBar(
+fun UpdatePropertyTopBar(
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -724,191 +777,20 @@ fun UploadPropertyTopBar(
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "Upload property",
+                text = "Update property",
                 fontWeight = FontWeight.Bold
             )
+
         }
-    }
-}
-
-@Composable
-fun ImagesUpload(
-    context: Context,
-    viewModel: CreateNewPropertyViewModel,
-    modifier: Modifier = Modifier
-) {
-
-
-    val uiState by viewModel.imagesUiState.collectAsState()
-
-    var imageUrl by remember {
-        mutableStateOf<Uri?>(null)
-    }
-    var images by remember {
-        mutableStateOf<List<Uri>>(listOf()) // Initialize images list as empty
-    }
-    val cacheDir = context.cacheDir
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let {
-                imageUrl = it
-                images = images.toMutableList().apply { add(imageUrl!!) } // Update images list
-
-                // Open an input stream from the content resolver associated with the URI
-                viewModel.images.add(uri)
-                viewModel.updateImagesUiState()
-            }
-        }
-    )
-
-
-
-
-    Column {
-        TextButton(onClick = { galleryLauncher.launch("image/*") }) {
-            Row {
-                Text(text = "Add images")
-                Icon(
-                    painter = painterResource(id = R.drawable.file_upload),
-                    contentDescription = "Add image"
-                )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-        ) {
-            uiState.images.forEachIndexed { index, uri ->
-                Row {
-                    Card(
-                        modifier = Modifier
-                            .height(100.dp)
-                    ) {
-                        Image(
-                            rememberImagePainter(data = uri),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .padding(
-                                    top = 5.dp,
-                                    end = 3.dp,
-                                    bottom = 5.dp
-                                )
-                                .size(100.dp)
-                        )
-                    }
-                    IconButton(onClick = {
-                        viewModel.images.removeAt(index)
-                        viewModel.updateImagesUiState()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-data class FeaturesInputField(
-    val keyboardType: KeyboardType,
-    val label: String,
-    var value: String,
-    val onValueChanged: (newValue: String) -> Unit,
-)
-
-@Preview(showBackground = true)
-@Composable
-fun ImagesUploadPreview() {
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    PropertyManagementTheme {
-        ImagesUpload(
-            context = LocalContext.current,
-            viewModel = viewModel
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PropertyFeaturesPreview() {
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    PropertyManagementTheme {
-        PropertyFeatures(
-            viewModel = viewModel
-        )
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun LocationSelectionSelectionPreview() {
-    PropertyManagementTheme {
-        LocationSelection(
-            addressValue = "",
-            countyValue = "",
-            latitudeValue = "",
-            longitudeValue = "",
-            onAddressValueChanged = {},
-            onLatitudeValueChanged = {},
-            onLongitudeValueChanged = {},
-            onCountyValueChanged = {},
-        )
-    }
-}
-
-
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun AvailabilitySelectionPreview() {
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    PropertyManagementTheme {
-        AvailabilitySelection(
-            viewModel = viewModel
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun InputFieldPreview() {
-    PropertyManagementTheme {
-        InputField(
-            label = "Title",
-            value = "",
-            keyboardType = KeyboardType.Text,
-            maxLines = 1,
-            onValueChanged = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PropertyTypeSelectionPreview() {
-    val viewModel: CreateNewPropertyViewModel = viewModel(factory = AppViewModelFactory.Factory)
-    PropertyManagementTheme {
-        PropertyTypeSelection(
-            viewModel = viewModel
-        )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
-fun CreateNewPropertyScreenPreview() {
+fun PropertyUpdateScreenPreview() {
     PropertyManagementTheme {
-        CreateNewPropertyScreen(
-            onBackButtonClicked = {},
+        PropertyUpdateScreen(
             navigateToUserAdvertisedProperties = {}
         )
     }

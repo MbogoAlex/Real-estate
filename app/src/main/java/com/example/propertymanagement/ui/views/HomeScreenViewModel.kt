@@ -117,7 +117,6 @@ class HomeScreenViewModel(
                     categoryId = categoryId
                 )
                 if(response.isSuccessful) {
-                    Log.i("FETCHING_SUCCESSFUL", "${response.body()?.data?.categories!!}")
                     listingsData = listingsData.copy(
                         listings = response.body()?.data?.categories!!
                     )
@@ -157,7 +156,7 @@ class HomeScreenViewModel(
                     listingsData = listingsData.copy(
                         categories = response.body()!!.data.categories
                     )
-                    val firstCategoryId = listingsData.categories[0].categoryId
+                    val firstCategoryId = listingsData.categories[0].id
                     fetchListings(firstCategoryId.toString(), token)
                     _uiState.update {
                         it.copy(
@@ -167,44 +166,17 @@ class HomeScreenViewModel(
                     Log.i("CATEGORIES_FETCHED_ARE", "${_uiState.value.listingsData.categories}")
                 } else {
                     Log.i("FETCHING_CATEGORIES_STATUS", response.isSuccessful.toString())
+                    handleLoginLogic()
                 }
             } catch (e: Exception) {
                 Log.e("FETCHING_CATEGORIES_STATUS", "Error fetching categories: ${e.message}")
+                handleLoginLogic()
             }
 
 
         }
     }
 
-    fun fetchListingsOfSpecificCategory(categoryId: String) {
-        Log.i("FILTERING_UNITS", categoryId.toString())
-        viewModelScope.launch {
-            try {
-                val response = pManagerApiRepository.getPropertiesOfSpecificCategory(
-                    token = "Bearer ${userDetails.token}",
-                    categoryId = categoryId
-                )
-                if(response.isSuccessful) {
-                    Log.i("PROPERTIES_LOADED: ", response.body()?.data?.categories!!.toString())
-                    _uiState.update {
-                        it.copy(
-                            listingsData = ListingsData(
-                                listings = response.body()?.data?.categories!!
-                            )
-                        )
-                    }
-
-                } else {
-                    Log.e("LISTINGS_NOT_LOADED", response.toString())
-
-                }
-            } catch (e: Exception) {
-                Log.i("LISTINGS_NOT_LOADED_EXCEPTION", e.toString())
-
-
-            }
-        }
-    }
 
     fun handleLoginLogic() {
         Log.i("LOGIN_LOGIC", "HANDLING LOGIN LOGIC")
@@ -212,8 +184,8 @@ class HomeScreenViewModel(
             Log.i("USER_DETAILS_NOT_NULL", "${userDetails.userId != null}")
             _uiState.update {
                 it.copy(
-                    forceLogin = true,
-//                    forceRegister = true,
+//                    forceLogin = true,
+                    forceRegister = true,
                     userDetails = userDetails
                 )
             }

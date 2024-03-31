@@ -38,15 +38,20 @@ class AccountScreenViewModel(
         }
     }
 
+    fun userLogout() {
+        viewModelScope.launch {
+            pManagerSFRepository.deleteAllPreferences()
+        }
+    }
+
+    fun changeProfilePicture() {
+
+    }
 
 
     init {
         loadUserDetails()
     }
 
-    fun userLogout() {
-        viewModelScope.launch {
-            pManagerSFRepository.deleteAllPreferences()
-        }
-    }
+
 }

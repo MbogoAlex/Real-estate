@@ -25,16 +25,27 @@ data class PropertyData (
 )
 @Serializable
 data class PropertyDataProperty (
-    @SerialName(value = "propertyId")
-    val id: Int,
+    val user: Seller,
+    val propertyId: Int,
     val title: String,
     val description: String,
     val categoryId: Int,
     val price: Double,
+    val rooms: Int,
     val availableDate: String,
     val features: List<String>,
     val location: Location,
     val images: List<Image>
+)
+
+@Serializable
+data class Seller (
+    val userId: Int,
+    val email: String,
+    val phoneNumber: String,
+    val fname: String,
+    val lname: String,
+    val mname: String
 )
 @Serializable
 data class PropertyDetails (

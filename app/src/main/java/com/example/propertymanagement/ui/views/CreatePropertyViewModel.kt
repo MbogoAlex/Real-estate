@@ -31,6 +31,12 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 
+enum class UploadStatus {
+    INITIAL,
+    START,
+    DONE,
+    FAIL,
+}
 data class FeaturesInputFieldsUiState (
     var features: List<String> = mutableListOf()
 )
@@ -41,8 +47,9 @@ data class ImagesUiState (
 
 data class GeneralPropertyDataUiState (
     val generalPropertyDetails: GeneralPropertyDetails = GeneralPropertyDetails(
-        type = "",
-        rooms = "",
+        categoryId = 0,
+        type = "Type",
+        rooms = "Rooms",
         title = "",
         description = "",
         date = "",
@@ -56,12 +63,15 @@ data class GeneralPropertyDataUiState (
     ),
     val categories: List<Category> = mutableListOf(),
     val showCreateButton: Boolean = false,
-    val showPreview:  Boolean = false
+    val saveSuccessful: Boolean = false,
+    val showPreview:  Boolean = false,
+    val uploadStatus: UploadStatus = UploadStatus.INITIAL
 )
 
 data class GeneralPropertyDetails(
-    val type: String = "",
-    val rooms: String = "",
+    val categoryId: Int = 0,
+    val type: String = "Type",
+    val rooms: String = "Rooms",
     val title: String = "",
     val description: String = "",
     val date: String = "",
@@ -197,7 +207,12 @@ class CreateNewPropertyViewModel(
     }
 
     fun uploadProperty(categoryId: Int, context: Context) {
-        Log.i("UPLOAD_PROPERTY", "uploadProperty function called")
+        _generalPropertyDataUiState.update {
+            it.copy(
+                uploadStatus = UploadStatus.START
+            )
+        }
+        Log.i("UPLOAD_PROPERTY", "uploadProperty function called, categoryID: $categoryId")
         var imageParts = ArrayList<MultipartBody.Part>()
         _imagesUiState.value.images.forEach { uri ->
             val parcelFileDescriptor = context.contentResolver.openFileDescriptor(uri, "r", null)
@@ -262,16 +277,36 @@ class CreateNewPropertyViewModel(
                 )
 
                 if (response.isSuccessful) {
+                    _generalPropertyDataUiState.update {
+                        it.copy(
+                            uploadStatus = UploadStatus.DONE
+                        )
+                    }
                     val responseBody = response.body()
+                    _generalPropertyDataUiState.update {
+                        it.copy(
+                            saveSuccessful = true
+                        )
+                    }
                     if (responseBody != null) {
                         Log.i("CREATE_PROPERTY_RESPONSE", "Status Code: ${responseBody.statusCode}, Message: ${responseBody.message}")
                     } else {
                         Log.i("CREATE_PROPERTY_RESPONSE", "Response body is null")
                     }
                 } else {
-                    Log.e("CREATE_PROPERTY_RESPONSE", "Unsuccessful response: ${response.code()}")
+                    _generalPropertyDataUiState.update {
+                        it.copy(
+                            uploadStatus = UploadStatus.FAIL
+                        )
+                    }
+                    Log.e("CREATE_PROPERTY_RESPONSE", "Unsuccessful response: ${response.body()}")
                 }
             } catch (e: Exception) {
+                _generalPropertyDataUiState.update {
+                    it.copy(
+                        uploadStatus = UploadStatus.FAIL
+                    )
+                }
                 Log.e("CREATE_PROPERTY_EXCEPTION", "Exception: ${e.message}")
             }
         }
@@ -283,6 +318,12 @@ class CreateNewPropertyViewModel(
         return stringData.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 
-
+    fun stopLoadingToPreviousPage() {
+        _generalPropertyDataUiState.update {
+            it.copy(
+                saveSuccessful = false
+            )
+        }
+    }
 
 }

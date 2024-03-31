@@ -13,6 +13,9 @@ import com.example.propertymanagement.ui.views.HomeScreenViewModel
 import com.example.propertymanagement.ui.views.LoginViewModel
 import com.example.propertymanagement.ui.views.RegistrationViewModel
 import com.example.propertymanagement.ui.views.UnitsDetailsScreenViewModel
+import com.example.propertymanagement.ui.views.advertisenment.AdvertDetailsScreenViewModel
+import com.example.propertymanagement.ui.views.advertisenment.UserAdvertsViewModel
+import com.example.propertymanagement.ui.views.propertyUpdate.PropertyUpdateScreenViewModel
 
 object AppViewModelFactory {
     val Factory = viewModelFactory {
@@ -61,7 +64,11 @@ object AppViewModelFactory {
 
         initializer {
             val pManagerApiRepository = pManagerApplication().container.pMangerApiRepository
-            RegistrationViewModel(pMangerApiRepository = pManagerApiRepository)
+            val pManagerSFRepository = pManagerApplication().pManagerSFRepository
+            RegistrationViewModel(
+                pMangerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository
+            )
         }
 
         //initialize AccountScreenViewModel
@@ -82,6 +89,37 @@ object AppViewModelFactory {
             )
         }
 
+        // intialize UserAdvertsViewModel
+        initializer {
+            val pManagerApiRepository = pManagerApplication().formDataContainer.pMangerApiRepository
+            val pManagerSFRepository = pManagerApplication().pManagerSFRepository
+            UserAdvertsViewModel(
+                pManagerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository
+            )
+        }
+        // initialize AdvertsScreenViewModel
+        initializer {
+            val pManagerApiRepository = pManagerApplication().formDataContainer.pMangerApiRepository
+            val pManagerSFRepository = pManagerApplication().pManagerSFRepository
+            AdvertDetailsScreenViewModel(
+                pManagerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository,
+                savedStateHandle = this.createSavedStateHandle()
+            )
+        }
+
+        // initialize PropertyUpdateScreenViewModel
+
+        initializer {
+            val pManagerApiRepository = pManagerApplication().formDataContainer.pMangerApiRepository
+            val pManagerSFRepository = pManagerApplication().pManagerSFRepository
+            PropertyUpdateScreenViewModel(
+                pManagerApiRepository = pManagerApiRepository,
+                pManagerSFRepository = pManagerSFRepository,
+                savedStateHandle = this.createSavedStateHandle()
+            )
+        }
 
     }
 }

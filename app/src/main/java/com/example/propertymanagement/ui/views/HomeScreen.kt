@@ -1,6 +1,7 @@
 package com.example.propertymanagement.ui.views
 
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateContentSize
@@ -11,6 +12,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,20 +22,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigationItem
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -40,11 +51,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -52,37 +65,40 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.propertymanagement.R
-import com.example.propertymanagement.apiServices.model.Categories
 import com.example.propertymanagement.apiServices.model.Category
 import com.example.propertymanagement.apiServices.model.PropertyDataProperty
-import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.BottomTab
-import com.example.propertymanagement.model.PropertyUnit
+import com.example.propertymanagement.model.NavigationContent
 import com.example.propertymanagement.model.UnitType
 import com.example.propertymanagement.ui.AppViewModelFactory
 import com.example.propertymanagement.ui.nav.NavigationDestination
-import com.example.propertymanagement.ui.state.AppUiState
 import com.example.propertymanagement.ui.theme.PropertyManagementTheme
+import com.example.propertymanagement.ui.views.advertisenment.UserAdvertsScreen
+import kotlinx.coroutines.launch
 
 object HomeDestination: NavigationDestination {
     override val route: String = "Home"
@@ -92,8 +108,10 @@ object HomeDestination: NavigationDestination {
 @Composable
 fun PropertyScreen(
     navigateToUnit: (unitId: String) -> kotlin.Unit = {id -> },
+    navigateToAdvertDetails: (unitId: String) -> kotlin.Unit = {id -> },
     onBackButtonPressed: () -> Unit,
     navigateToRegistrationPage: () -> kotlin.Unit,
+    navigateToCreatePropertyScreen: () -> Unit,
     proceedToLogin: (phoneNumber: String, password: String) -> kotlin.Unit,
     onLoadHomeScreen: () -> Unit,
     modifier: Modifier = Modifier
@@ -105,6 +123,7 @@ fun PropertyScreen(
 
     if(uiState.forceLogin) {
         Toast.makeText(context, "You are not logged in", Toast.LENGTH_SHORT).show()
+        Log.i("LOGIN_WITH_CRED: ", "phone: ${uiState.userDetails.phoneNumber}, pass: ${uiState.userDetails.password}")
         proceedToLogin(
             uiState.userDetails.phoneNumber,
             uiState.userDetails.password
@@ -185,7 +204,11 @@ fun PropertyScreen(
                 )
             }
             BottomTab.UPLOAD_PROPERTY -> {
-                CreateNewPropertyScreen(
+                UserAdvertsScreen(
+                    navigateToCreatePropertyScreen = navigateToCreatePropertyScreen,
+                    navigateToAdvertDetails = {
+                        navigateToAdvertDetails(it)
+                    },
                     modifier = Modifier
                         .weight(1f)
                 )
@@ -240,9 +263,13 @@ fun UnitsScreen(
      }
 
 
+
+
+
     Column(
         modifier = modifier
     ) {
+
         TopMostBar(
             categories = uiState.listingsData.categories,
             searchLocation = "",
@@ -255,7 +282,6 @@ fun UnitsScreen(
             showSearchField = showSearchField,
             filterListing = filterListing
         )
-
         ScrollableUnitsScreen(
             navigateToUnit = navigateToUnit,
 //            showSelectedUnit = showSelectedUnit,
@@ -280,6 +306,26 @@ fun TopMostBar(
     showSearchField: Boolean,
     modifier: Modifier = Modifier
 ) {
+    var filteredLocations by rememberSaveable {
+        mutableStateOf(countiesListManipulation(""))
+    }
+
+    var locationQuery by rememberSaveable {
+        mutableStateOf("")
+    }
+    var showFilterLocationsBox by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showDropDown by rememberSaveable {
+        mutableStateOf(true)
+    }
+    var selectedLocation by rememberSaveable {
+        mutableStateOf("Nairobi")
+    }
+    var location by rememberSaveable {
+        mutableStateOf("")
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -290,43 +336,58 @@ fun TopMostBar(
                 )
             )
     ) {
-        if(showSearchField) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                SearchField(
-                    searchLocation = searchLocation,
-                    modifier = Modifier
-                        .weight(1f)
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.cancel),
-                    contentDescription = "Cancel searching",
-                    modifier = Modifier
-                        .padding(
-                            end = 10.dp
-                        )
-                        .clickable {
-                            onStopSearchClicked()
-                        }
-                )
-            }
-        } else {
-            TopBarTextAndImage(
-                onSearchIconClicked = { onSearchIconClicked() }
-            )
-        }
+        TopBarTextAndImage(
+            selectedLocation = selectedLocation,
+            onShowLocationsBox = {
+                showFilterLocationsBox = !showFilterLocationsBox
+            },
+
+            onSearchIconClicked = { onSearchIconClicked() }
+        )
         FilterBoxes(
             categories = categories,
             filterListing = filterListing
         )
     }
+//    if(showFilterLocationsBox) {
+//        SearchField(
+//            value = location,
+//            onValueChange = {
+//                location = it
+//                filteredLocations = countiesListManipulation(it)
+//            },
+//            searchLocation = "Enter county name"
+//        )
+//        filteredLocations.forEach {
+//            Text(
+//                text = it,
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .clickable {
+//                        location = it
+//                        selectedLocation = location
+//                        showFilterLocationsBox = false
+//                    }
+//                    .padding(
+//                        start = 10.dp,
+//                        top = 10.dp
+//                    )
+//            )
+//        }
+//    } else {
+//        FilterBoxes(
+//            categories = categories,
+//            filterListing = filterListing
+//        )
+//    }
+
+
 }
 
 @Composable
 fun TopBarTextAndImage(
+    selectedLocation: String,
+    onShowLocationsBox: () -> Unit,
     onSearchIconClicked: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
@@ -338,6 +399,7 @@ fun TopBarTextAndImage(
                 bottom = 2.dp
             )
     ) {
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -347,6 +409,15 @@ fun TopBarTextAndImage(
                     end = 10.dp
                 )
         ) {
+//            FilterLocationDropDownMenu(
+//                selectedLocation = selectedLocation,
+//                modifier = Modifier
+//                    .clickable {
+//                        onShowLocationsBox()
+//
+//                    }
+//            )
+//            Spacer(modifier = Modifier.weight(1f))
             Image(
                 painter = painterResource(id = R.drawable.prop_ease_3),
                 contentDescription = "App Icon",
@@ -359,14 +430,15 @@ fun TopBarTextAndImage(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                modifier = Modifier
-                    .clickable {
-                        onSearchIconClicked()
-                    }
-            )
+
+//            Icon(
+//                imageVector = Icons.Default.Search,
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .clickable {
+//                        onSearchIconClicked()
+//                    }
+//            )
 
         }
     }
@@ -374,6 +446,8 @@ fun TopBarTextAndImage(
 
 @Composable
 fun SearchField(
+    onValueChange: (value: String) -> Unit,
+    value: String,
     searchLocation: String,
     modifier: Modifier = Modifier
 ) {
@@ -388,15 +462,19 @@ fun SearchField(
             )
     ) {
         TextField(
-            value = "",
+            value = value,
             placeholder = {
                           Text(
-                              text = "Search location",
+                              text = "Enter county name",
                               fontWeight = FontWeight.Light
                           )
             },
-            onValueChange = {},
+            onValueChange = onValueChange,
             shape = RoundedCornerShape(10.dp),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Text
+            ),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -486,11 +564,11 @@ fun FilterBoxes(
                 BoxMenuItem(
                     selectedBoxValue = selectedBoxValue,
                     boxValueName = it.name,
-                    boxValueId = it.categoryId.toString(),
+                    boxValueId = it.id.toString(),
                     modifier = Modifier
                         .clickable {
-                            selectedBoxValue = it.categoryId
-                            filterListing(it.categoryId.toString())
+                            selectedBoxValue = it.id
+                            filterListing(it.id.toString())
                         }
                 )
                 Spacer(modifier = Modifier.width(5.dp))
@@ -545,15 +623,16 @@ fun ScrollableUnitsScreen(
     showContact: () -> kotlin.Unit,
     modifier: Modifier = Modifier
 ) {
+    val listings = uiState.listingsData.listings.reversed()
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
     ) {
-        items(uiState.listingsData.listings.size) { index ->
+        items(listings) {
             UnitItem(
                 navigateToUnit = navigateToUnit,
                 isRegistered = isRegistered,
-                unit = uiState.listingsData.listings[index],
+                unit = it,
                 showContact = showContact,
                 modifier = Modifier
 //                    .padding(
@@ -561,6 +640,7 @@ fun ScrollableUnitsScreen(
 //                    )
             )
         }
+
     }
 }
 
@@ -581,7 +661,7 @@ fun UnitItem(
                     end = 10.dp,
                     bottom = 10.dp
                 )
-                .clickable { navigateToUnit(unit.id) }
+                .clickable { navigateToUnit(unit.propertyId) }
         ) {
             if(unit.images.isNotEmpty()) {
                 AsyncImage(
@@ -640,7 +720,7 @@ fun UnitItem(
                     contentDescription = null,
                     modifier = Modifier
                         .size(40.dp)
-                        .clickable { navigateToUnit(unit.id) }
+                        .clickable { navigateToUnit(unit.propertyId) }
 //                        .align(Alignment.End)
                 )
             }
@@ -659,26 +739,6 @@ fun UnitItem(
                     )
                 }
             }
-//            if(isRegistered) {
-//                Text(
-//                    text = unit.phoneNumber,
-//                    modifier = Modifier
-//
-//                )
-//            } else {
-//                Button(
-//                    onClick = {
-//                           showContact()
-//
-//                    },
-//                    modifier = Modifier
-//
-//                ) {
-//                    Text(
-//                        text = "Show Contact",
-//                    )
-//                }
-//            }
             Spacer(modifier = Modifier.height(10.dp))
             Divider()
 //            Spacer(modifier = Modifier.height(10.dp))
@@ -714,26 +774,6 @@ fun BottomNavigationBar(
                 }
             )
         }
-//        for(navItem in navigationContentList) {
-//            NavigationBarItem(
-//                selected = navItem.currentTab == currentTab,
-//                onClick = { onTabClicked(navItem.currentTab) },
-//                label = { Text(text = navItem.title) },
-//                icon = {
-//                    if(newNotification) {
-//                        Box {
-//                            Icon(
-//                                painter = navItem.icon,
-//                                contentDescription = null
-//                            )
-//                            Text(text = numberOfNotifications.toString())
-//                        }
-//                    }
-//
-//                },
-//
-//            )
-//        }
     }
 }
 
@@ -754,6 +794,321 @@ fun TopBar(
         },
 
     )
+}
+
+@Composable
+fun FilterLocationDropDownMenu(
+    selectedLocation: String,
+    modifier: Modifier = Modifier
+) {
+    var showDropDown by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
+    val scrollState = rememberScrollState()
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val scope = rememberCoroutineScope()
+
+    var filteredCounties by rememberSaveable {
+        mutableStateOf(countiesListManipulation(""))
+    }
+
+    var query by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    Card(
+        shape = RoundedCornerShape(0.dp),
+        modifier = modifier
+            .widthIn(150.dp)
+
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = selectedLocation,
+                modifier = Modifier.padding(
+                    top = 10.dp,
+                    bottom = 10.dp,
+                    start = 10.dp,
+                    end = 10.dp,
+
+                )
+            )
+            if(showDropDown) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = null
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+
+        }
+
+    }
+
+
+
+}
+
+@Composable
+fun LocationFilterBox(
+    showDropDown: Boolean,
+    onHideDropDown: () -> Unit,
+    onSelectItem: (index: Int) -> Unit,
+    onValueChange: (value: String) -> Unit,
+    value: String,
+    filteredCounties: List<String>,
+    modifier: Modifier = Modifier
+) {
+    ElevatedCard(
+        shape = RoundedCornerShape(0.dp),
+        modifier = Modifier
+//                            .width(150.dp)
+            .padding(top = 50.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .heightIn(max = 300.dp)
+        ) {
+            LocationEntryTextField(
+                onValueChange = onValueChange,
+                value = value
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                filteredCounties.forEachIndexed { index, county ->
+                    Text(
+                        text = county,
+                        modifier = Modifier
+                            .padding(
+                                start = 5.dp,
+                                top = 15.dp,
+                                bottom = 5.dp
+                            )
+                            .clickable {
+                                onSelectItem(index)
+                            }
+                            .fillMaxWidth()
+                            .align(
+                                Alignment.CenterHorizontally
+                            )
+                    )
+                    Divider(
+                        modifier = Modifier
+//                                            .width(150.dp)
+                    )
+                }
+            }
+        }
+
+
+    }
+}
+
+@Composable
+fun LocationEntryTextField(
+    onValueChange: (value: String) -> Unit,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        contentAlignment = Alignment.Center
+    ) {
+        OutlinedTextField(
+            label = {
+                    Text(text = "Location")
+            },
+            value = value,
+            onValueChange = onValueChange,
+//            colors = TextFieldDefaults.textFieldColors(
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent
+//            )
+        )
+    }
+
+}
+
+private fun countiesListManipulation(query: String): List<String> {
+    val counties = mutableListOf<String>(
+        "Mombasa",
+        "Kwale",
+        "Kilifi",
+        "Tana River",
+        "Lamu",
+        "Taita Taveta",
+        "Garissa",
+        "Wajir",
+        "Mandera",
+        "Marsabit",
+        "Isiolo",
+        "Meru",
+        "Tharaka Nithi",
+        "Embu",
+        "Kitui",
+        "Machakos",
+        "Makueni",
+        "Nyandarua",
+        "Nyeri",
+        "Kirinyaga",
+        "Murang'a",
+        "Nairobi",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+        "Trans Nzoia",
+        "Uasin Gishu",
+        "Elgeyo-Marakwet",
+        "Nandi",
+        "Baringo",
+        "Laikipia",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+        "Trans Nzoia",
+        "Uasin Gishu",
+        "Elgeyo-Marakwet",
+        "Nandi",
+        "Baringo",
+        "Laikipia",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+        "Trans Nzoia",
+        "Uasin Gishu",
+        "Elgeyo-Marakwet",
+        "Nandi",
+        "Baringo",
+        "Laikipia",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+        "Trans Nzoia",
+        "Uasin Gishu",
+        "Elgeyo-Marakwet",
+        "Nandi",
+        "Baringo",
+        "Laikipia",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+        "Trans Nzoia",
+        "Uasin Gishu",
+        "Elgeyo-Marakwet",
+        "Nandi",
+        "Baringo",
+        "Laikipia",
+        "Nakuru",
+        "Narok",
+        "Kajiado",
+        "Kericho",
+        "Bomet",
+        "Kakamega",
+        "Vihiga",
+        "Bungoma",
+        "Busia",
+        "Siaya",
+        "Kisumu",
+        "Homa Bay",
+        "Migori",
+        "Kisii",
+        "Nyamira",
+        "Turkana",
+        "West Pokot",
+        "Samburu",
+    )
+    if(query.isEmpty()) {
+        return emptyList()
+    } else {
+        return counties.filter { it.contains(query, ignoreCase = true) }.distinct()
+    }
 }
 
 @Composable
@@ -824,12 +1179,36 @@ fun BottomNavigationBarPreview() {
     }
 }
 
+
+@Preview(showBackground = true)
+@Composable
+fun FilterLocationDropDownMenuPreview() {
+    PropertyManagementTheme {
+        FilterLocationDropDownMenu(
+            selectedLocation = "Nairobi",
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LocationEntryTextFieldPreview() {
+    PropertyManagementTheme {
+        LocationEntryTextField(
+            value = "",
+            onValueChange = {}
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun SearchFieldPreview() {
     PropertyManagementTheme {
         SearchField(
-            searchLocation = ""
+            searchLocation = "",
+            value = "",
+            onValueChange = {}
         )
     }
 }
@@ -854,6 +1233,8 @@ fun TopMostBarPreview() {
 fun TopBarTextAndImagePreview() {
     PropertyManagementTheme {
         TopBarTextAndImage(
+            selectedLocation = "Nairobi",
+            onShowLocationsBox = {},
             onSearchIconClicked = {}
         )
     }
@@ -881,6 +1262,7 @@ fun ScrollableUnitsScreenCompactPreview(
             onBackButtonPressed = {},
             navigateToRegistrationPage = {},
             proceedToLogin = {phoneNumber, password ->  },
+            navigateToCreatePropertyScreen = {},
             onLoadHomeScreen = {}
         )
     }

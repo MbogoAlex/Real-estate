@@ -5,11 +5,14 @@ import com.example.propertymanagement.apiServices.model.LoginDetails
 import com.example.propertymanagement.apiServices.model.LoginResponseStatus
 import com.example.propertymanagement.apiServices.model.Property
 import com.example.propertymanagement.apiServices.model.PropertyDetails
+import com.example.propertymanagement.apiServices.model.PropertyUpdateRequest
+import com.example.propertymanagement.apiServices.model.PropertyUpdateResponse
 import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
 import com.example.propertymanagement.apiServices.model.SingleProperty
 import com.example.propertymanagement.apiServices.model.SpecificCategoryProperty
+import com.example.propertymanagement.apiServices.model.UserProperty
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -18,6 +21,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 
@@ -47,4 +51,17 @@ interface PMangerApiService {
     suspend fun getSpecificProperty(@Header("Authorization") token: String, @Path("propertyId") propertyId: String): Response<SingleProperty>
     @GET("api/property/categoryId={categoryId}")
     suspend fun getPropertiesOfSpecificCategory(@Header("Authorization") token: String, @Path("categoryId") categoryId: String): Response<SpecificCategoryProperty>
+
+    @GET("api/property/userId={userId}")
+    suspend fun getUserProperties(
+        @Header("Authorization") token: String,
+        @Path("userId") userId: String
+    ): Response<UserProperty>
+
+    @PUT("api/property/propertyId={propertyId}/update")
+    suspend fun updateProperty(
+        @Body property: PropertyUpdateRequest,
+        @Header("Authorization") token: String,
+        @Path("propertyId") propertyId: Int,
+    ): Response<PropertyUpdateResponse>
 }

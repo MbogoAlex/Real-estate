@@ -15,7 +15,6 @@ data class Categories (
 )
 @Serializable
 data class Category (
-    @SerialName(value = "id")
-    val categoryId: Int,
+    val id: Int,
     val name: String
 )

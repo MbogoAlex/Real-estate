@@ -6,11 +6,14 @@ import com.example.propertymanagement.apiServices.model.LoginDetails
 import com.example.propertymanagement.apiServices.model.LoginResponseStatus
 import com.example.propertymanagement.apiServices.model.Property
 import com.example.propertymanagement.apiServices.model.PropertyDetails
+import com.example.propertymanagement.apiServices.model.PropertyUpdateRequest
+import com.example.propertymanagement.apiServices.model.PropertyUpdateResponse
 import com.example.propertymanagement.apiServices.model.PropertyUploadResponse
 import com.example.propertymanagement.apiServices.model.RegistrationDetails
 import com.example.propertymanagement.apiServices.model.RegistrationResponseStatus
 import com.example.propertymanagement.apiServices.model.SingleProperty
 import com.example.propertymanagement.apiServices.model.SpecificCategoryProperty
+import com.example.propertymanagement.apiServices.model.UserProperty
 import com.example.propertymanagement.apiServices.network.PMangerApiService
 import okhttp3.MultipartBody
 import retrofit2.Response
@@ -28,6 +31,9 @@ interface PMangerApiRepository {
     suspend fun getSpecificProperty(token: String, propertyId: String): Response<SingleProperty>
 
     suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<SpecificCategoryProperty>
+    suspend fun getUserProperties(token: String, userId: String): Response<UserProperty>
+
+    suspend fun updateProperty(token: String, propertyId: Int, property: PropertyUpdateRequest): Response<PropertyUpdateResponse>
 }
 
 class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiService): PMangerApiRepository {
@@ -50,5 +56,20 @@ class NetworkPManagerApiRepository(private val pManagerApiService: PMangerApiSer
     override suspend fun getPropertiesOfSpecificCategory(token: String, categoryId: String): Response<SpecificCategoryProperty> = pManagerApiService.getPropertiesOfSpecificCategory(
         token = token,
         categoryId = categoryId
+    )
+
+    override suspend fun getUserProperties(token: String, userId: String): Response<UserProperty> = pManagerApiService.getUserProperties(
+        token = token,
+        userId = userId
+    )
+
+    override suspend fun updateProperty(
+        token: String,
+        propertyId: Int,
+        property: PropertyUpdateRequest
+    ): Response<PropertyUpdateResponse> = pManagerApiService.updateProperty(
+        propertyId = propertyId,
+        token = token,
+        property = property
     )
 }
